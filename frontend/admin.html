@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura - Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js and WordCloud -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Login Overlay -->
+    <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
+        <div class="minimal-card p-8 w-full max-w-sm flex flex-col gap-5 anim-fade-in shadow-2xl border border-[#333]">
+            <div class="text-center mb-2">
+                <div
+                    class="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center font-bold text-2xl mx-auto mb-4">
+                    A</div>
+                <h2 class="text-2xl font-bold text-white">Aura Central Command</h2>
+            </div>
+
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-400 mb-1">Access ID</label>
+                <input type="text" id="username"
+                    class="w-full p-3 rounded-lg bg-black border border-[#262626] focus:outline-none focus:ring-1 focus:ring-white focus:border-white text-white transition-all shadow-inner">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-400 mb-1">Security Key</label>
+                <input type="password" id="password"
+                    class="w-full p-3 rounded-lg bg-black border border-[#262626] focus:outline-none focus:ring-1 focus:ring-white focus:border-white text-white transition-all shadow-inner">
+            </div>
+
+            <div id="loginError" class="text-red-400 text-sm hidden font-medium flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Clearance denied. Hint: admin / password123</span>
+            </div>
+
+            <button id="loginBtn"
+                class="w-full py-3 bg-white text-black hover:bg-gray-200 rounded-lg font-medium transition-all active:scale-95 mt-2 shadow-[0_0_15px_rgba(255,255,255,0.15)]">Authenticate</button>
+            <a href="index.html" class="text-sm text-center text-gray-500 hover:text-white transition-colors mt-2">←
+                Disconnect to Portal</a>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header id="adminHeader" class="w-full border-b border-[#262626] bg-[#0c0c0c] hidden">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-bold text-lg">
+                    A</div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white leading-none">Aura Central</h1>
+                    <p class="text-xs text-gray-500 mt-0.5" id="lastUpdated">Sync pending...</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="downloadCSV()"
+                    class="px-4 py-2 bg-[#064e3b]/30 border border-emerald-900/50 text-emerald-400 hover:bg-[#064e3b]/60 rounded-lg transition-colors font-medium text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    Export Log
+                </button>
+                <button onclick="fetchAdminData()"
+                    class="px-4 py-2 bg-[#1a1a1a] border border-[#333] text-gray-300 hover:bg-[#262626] hover:text-white rounded-lg transition-colors font-medium text-sm p-2 flex items-center justify-center"
+                    title="Refresh">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                        </path>
+                    </svg>
+                </button>
+                <a href="index.html"
+                    class="px-4 py-2 bg-rose-900/30 text-rose-500 border border-rose-900/50 hover:bg-rose-900/50 rounded-lg transition-colors font-medium text-sm hidden sm:block">Disconnect</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dashboard Main -->
+    <main id="dashboard" class="w-full max-w-7xl mx-auto hidden flex-col gap-6 anim-fade-in px-6 py-6 flex-1">
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div class="minimal-card p-6 flex flex-col justify-between hover:border-[#444] transition-colors">
+                <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Total Packets</h3>
+                <p id="statTotal" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div
+                class="minimal-card p-6 flex flex-col justify-between border-l-2 border-emerald-500 bg-[#141414] hover:bg-[#1a1a1a] transition-colors">
+                <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Positive Vectors</h3>
+                <p id="statPositive" class="text-3xl font-bold text-emerald-400">0</p>
+            </div>
+            <div
+                class="minimal-card p-6 flex flex-col justify-between border-l-2 border-rose-500 bg-[#141414] hover:bg-[#1a1a1a] transition-colors">
+                <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Negative Vectors</h3>
+                <p id="statNegative" class="text-3xl font-bold text-rose-400">0</p>
+            </div>
+            <div
+                class="minimal-card p-6 flex flex-col justify-between border-l-2 border-gray-500 bg-[#141414] hover:bg-[#1a1a1a] transition-colors">
+                <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Neutral Baselines</h3>
+                <p id="statNeutral" class="text-3xl font-bold text-gray-300">0</p>
+            </div>
+        </div>
+
+        <!-- Visualizations Area -->
+        <div class="grid lg:grid-cols-5 gap-6">
+            <!-- Chart.js Trend Line -->
+            <div class="lg:col-span-3 minimal-card p-6 flex flex-col min-h-[300px]">
+                <h2 class="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Volume Trend Analysis</h2>
+                <div class="flex-1 w-full h-full relative">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Word Cloud -->
+            <div class="lg:col-span-2 minimal-card p-6 flex flex-col min-h-[300px]">
+                <h2 class="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Linguistic Topography</h2>
+                <div class="flex-1 w-full h-full bg-[#0c0c0c] rounded-lg border border-[#262626] relative flex items-center justify-center p-2"
+                    id="wordCloudContainer">
+                    <canvas id="wordCloudCanvas" class="w-full h-full"></canvas>
+                    <p id="cloudEmpty" class="text-gray-600 text-sm hidden absolute">Insufficient Data</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="minimal-card overflow-hidden flex flex-col border border-[#262626]">
+            <!-- Table Header & Controls -->
+            <div class="p-4 border-b border-[#262626] flex justify-between items-center bg-[#1a1a1a]">
+                <h2 class="text-sm font-semibold text-white uppercase tracking-wider">Datapath Log</h2>
+
+                <div class="flex items-center gap-4 text-sm">
+                    <label class="text-gray-400">Filter:</label>
+                    <select id="sentimentFilter"
+                        class="bg-[#0c0c0c] border border-[#333] text-white rounded-md px-2 py-1 focus:outline-none focus:border-white">
+                        <option value="All">All Sentiments</option>
+                        <option value="Positive">Positive</option>
+                        <option value="Negative">Negative</option>
+                        <option value="Neutral">Neutral</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table Body -->
+            <div class="overflow-x-auto min-h-[300px]">
+                <table class="w-full text-left whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 border-b border-[#262626]">ID</th>
+                            <th class="px-6 py-3 border-b border-[#262626] w-1/2">Snippet</th>
+                            <th class="px-6 py-3 border-b border-[#262626]">Class</th>
+                            <th class="px-6 py-3 border-b border-[#262626]">Confidence</th>
+                            <th class="px-6 py-3 border-b border-[#262626]">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody" class="divide-y divide-[#262626]">
+                        <!-- Populated dynamically via JS -->
+                    </tbody>
+                </table>
+                <div id="tableEmptyState" class="hidden p-12 text-center text-gray-500">
+                    No packets match the current filter.
+                </div>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="p-4 border-t border-[#262626] bg-[#1a1a1a] flex justify-between items-center">
+                <span class="text-sm text-gray-500" id="pageInfo">Showing 1 to 50 of 0</span>
+                <div class="flex gap-2">
+                    <button id="prevBtn"
+                        class="px-3 py-1 bg-[#262626] text-gray-400 hover:text-white hover:bg-[#333] rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium">Previous</button>
+                    <button id="nextBtn"
+                        class="px-3 py-1 bg-[#262626] text-gray-400 hover:text-white hover:bg-[#333] rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium">Next</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Admin Footer -->
+    <footer id="adminFooter" class="w-full border-t border-[#262626] bg-[#0c0c0c] mt-auto hidden py-6">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center text-xs text-gray-600">
+            <span>Aura Local Cluster: Online</span>
+            <span>v2.0.0-advanced</span>
+        </div>
+    </footer>
+
+    <!-- App Logic needs to be loaded here if we separated them, otherwise use inline for admin specifics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
+    <script type="module" src="/js/adminPortal.js"></script>
+</body>
+
+</html>

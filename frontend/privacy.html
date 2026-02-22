@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Aura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body
+    class="bg-[#0a0a0a] text-gray-200 min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+
+    <!-- Ultra-minimal modern header -->
+    <header class="fixed top-0 w-full z-50 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-[#1a1a1a]">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="/"
+                    class="flex items-center justify-center w-8 h-8 rounded bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-[#262626] shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </a>
+                <span class="text-sm font-semibold tracking-wide text-white"><a href="/">AURA</a></span>
+            </div>
+            <a href="/auth.html"
+                class="text-xs font-medium text-gray-400 hover:text-white transition-colors duration-200 bg-[#1a1a1a] px-3 py-1.5 rounded-md border border-[#262626] hover:border-[#404040]">
+                Access Portal &rarr;
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-grow pt-32 pb-24 px-6 relative">
+        <div
+            class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none">
+        </div>
+
+        <div class="max-w-3xl mx-auto relative z-10">
+            <div class="mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">Privacy Policy</h1>
+                <p class="text-gray-400 text-lg">Last updated: <span class="text-gray-300">February 2026</span></p>
+            </div>
+
+            <div
+                class="prose prose-invert prose-emerald max-w-none prose-p:text-gray-400 prose-headings:text-white prose-a:text-emerald-400">
+                <p class="lead text-xl text-gray-300">Your privacy is important to us. It is Aura's policy to respect
+                    your privacy regarding any information we may collect from you across our website and applications.
+                </p>
+
+                <h2 class="text-2xl font-semibold mt-10 mb-4 border-b border-[#262626] pb-2">1. Information We Collect
+                </h2>
+                <p>We only ask for personal information when we truly need it to provide a service to you. We collect it
+                    by fair and lawful means, with your knowledge and consent. The data we collect includes:</p>
+                <ul class="list-disc pl-5 mt-4 space-y-2 text-gray-400">
+                    <li><strong>Account Information:</strong> Email addresses and display names provided during
+                        registration via Firebase Authentication.</li>
+                    <li><strong>Submitted Text:</strong> Text submitted to the Sentiment Engine for analysis is stored
+                        securely in our Firestore database to provide you with your personal history and dashboard
+                        trends.</li>
+                </ul>
+
+                <h2 class="text-2xl font-semibold mt-10 mb-4 border-b border-[#262626] pb-2">2. How We Use Your Data
+                </h2>
+                <p>The information we collect is used strictly for providing and improving the Aura Sentiment Engine.
+                    Specifically, we use your data to:</p>
+                <ul class="list-disc pl-5 mt-4 space-y-2 text-gray-400">
+                    <li>Generate accurate NLP sentiment, emotion, and entity-extraction reports.</li>
+                    <li>Maintain your personalized history dashboard.</li>
+                    <li>Provide account recovery and authentication services.</li>
+                </ul>
+
+                <h2 class="text-2xl font-semibold mt-10 mb-4 border-b border-[#262626] pb-2">3. Data Security & Third
+                    Parties</h2>
+                <p>We do not share any personally identifying information publicly or with third-parties, except when
+                    required to by law. Our backend relies on enterprise-grade infrastructure:</p>
+                <ul class="list-disc pl-5 mt-4 space-y-2 text-gray-400">
+                    <li><strong>Google Cloud & Firebase:</strong> All authentication and database records are securely
+                        hosted utilizing Google's Firebase architecture.</li>
+                    <li><strong>No External NLP APIs:</strong> All text processing is conducted locally on our Python
+                        FastAPI server using open-source libraries (spaCy, TextBlob). Your text is never sent to
+                        third-party AI companies like OpenAI or Anthropic.</li>
+                </ul>
+
+                <h2 class="text-2xl font-semibold mt-10 mb-4 border-b border-[#262626] pb-2">4. Your Rights</h2>
+                <p>You are free to refuse our request for your personal information, with the understanding that we may
+                    be unable to provide you with some of your desired services. You may request the deletion of your
+                    account and associated analysis history at any time.</p>
+
+                <p class="mt-8">Your continued use of our website will be regarded as acceptance of our practices around
+                    privacy and personal information. If you have any questions about how we handle user data and
+                    personal information, feel free to contact us.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Comprehensive Footer -->
+    <footer class="w-full border-t border-[#262626] bg-[#0c0c0c] mt-auto relative z-10 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <!-- Brand -->
+            <div class="col-span-1 md:col-span-2">
+                <div class="flex items-center gap-3 mb-4">
+                    <div
+                        class="flex items-center justify-center w-8 h-8 rounded bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-[#262626] shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-lg font-bold tracking-wide text-white">AURA</span>
+                </div>
+                <p class="text-gray-500 text-sm max-w-sm leading-relaxed mb-6">
+                    Aura is an advanced, local-first Sentiment Engine powered by modern NLP technologies like spaCy and
+                    TextBlob, designed to decode emotional frequencies in milliseconds.
+                </p>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h4 class="text-white font-semibold mb-4 tracking-wide text-sm uppercase">Platform</h4>
+                <ul class="space-y-3">
+                    <li><a href="/" class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">Home</a></li>
+                    <li><a href="/auth.html"
+                            class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">Dashboard</a></li>
+                    <li><a href="/about.html"
+                            class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">About Project</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Legal -->
+            <div>
+                <h4 class="text-white font-semibold mb-4 tracking-wide text-sm uppercase">Legal</h4>
+                <ul class="space-y-3">
+                    <li><a href="/privacy.html"
+                            class="text-gray-500 hover:text-indigo-400 transition-colors text-sm">Privacy Policy</a>
+                    </li>
+                    <li><a href="/terms.html"
+                            class="text-gray-500 hover:text-indigo-400 transition-colors text-sm">Terms & Conditions</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div
+            class="max-w-7xl mx-auto px-6 border-t border-[#1a1a1a] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">
+            <p>&copy; 2026 Aura AI Systems. All rights reserved.</p>
+            <p class="flex items-center gap-1">Designed by the <span class="text-white font-medium">DeepMind Coding
+                    Agent</span></p>
+        </div>
+    </footer>
+</body>
+
+</html>

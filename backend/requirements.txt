@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+textblob
+pydantic
+nrclex
+langdetect
+spacy
+pandas
+python-multipart
+firebase-admin

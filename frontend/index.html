@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura - The AI Sentiment Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            color: #fff;
+        }
+
+        .hero-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col items-center overflow-x-hidden relative">
+    <div class="hero-glow"></div>
+
+    <header class="w-full border-b border-[#262626] bg-black/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-3 group">
+                <div
+                    class="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-bold text-lg group-hover:bg-gray-200 transition-colors shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+                    A</div>
+                <h1 class="text-xl font-bold tracking-tight text-white group-hover:text-gray-300 transition-colors">Aura
+                </h1>
+            </a>
+            <div class="flex items-center gap-4">
+                <a href="auth.html" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Sign
+                    In</a>
+                <a href="auth.html"
+                    class="px-5 py-2 btn-gradient text-white text-sm font-medium rounded-full shadow-lg">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <main
+        class="w-full max-w-6xl px-6 py-12 flex-1 flex flex-col justify-center items-center text-center relative z-10 z-10">
+        <div
+            class="border border-[#262626] text-gray-400 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider mb-8 bg-[#111] backdrop-blur-sm">
+            ✨ Introducing the Next-Gen Sentiment Analyzer
+        </div>
+        <h2
+            class="text-5xl md:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500 mb-8 leading-tight max-w-4xl mx-auto">
+            Decode the emotional frequency of your text.
+        </h2>
+        <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10">
+            Aura utilizes localized natural language processing to extract sentiment polarity, named entities, and
+            emotions in milliseconds.
+        </p>
+        <div class="flex gap-4">
+            <a href="auth.html"
+                class="px-8 py-4 btn-gradient text-white font-bold rounded-full shadow-[0_0_20px_rgba(16,185,129,0.3)] text-lg transition-transform">
+                Start Analyzing For Free
+            </a>
+        </div>
+
+        <div class="mt-20 w-full relative">
+            <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#262626] to-transparent">
+            </div>
+            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80"
+                alt="Dashboard Preview"
+                class="rounded-xl border border-[#262626] shadow-2xl mx-auto opacity-80 mix-blend-screen mask-image-b"
+                style="mask-image: linear-gradient(to bottom, black 50%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);">
+        </div>
+    </main>
+
+    <!-- Comprehensive Footer -->
+    <footer class="w-full border-t border-[#262626] bg-[#0c0c0c] mt-auto relative z-10 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <!-- Brand -->
+            <div class="col-span-1 md:col-span-2">
+                <div class="flex items-center gap-3 mb-4">
+                    <div
+                        class="flex items-center justify-center w-8 h-8 rounded bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-[#262626] shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-lg font-bold tracking-wide text-white">AURA</span>
+                </div>
+                <p class="text-gray-500 text-sm max-w-sm leading-relaxed mb-6">
+                    Aura is an advanced, local-first Sentiment Engine powered by modern NLP technologies like spaCy and
+                    TextBlob, designed to decode emotional frequencies in milliseconds.
+                </p>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h4 class="text-white font-semibold mb-4 tracking-wide text-sm uppercase">Platform</h4>
+                <ul class="space-y-3">
+                    <li><a href="/" class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">Home</a></li>
+                    <li><a href="/app.html"
+                            class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">Analyzer Engine</a>
+                    </li>
+                    <li><a href="/dashboard.html"
+                            class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">My Dashboard</a></li>
+                    <li><a href="/about.html"
+                            class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">About Project</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Legal -->
+            <div>
+                <h4 class="text-white font-semibold mb-4 tracking-wide text-sm uppercase">Legal</h4>
+                <ul class="space-y-3">
+                    <li><a href="/privacy.html"
+                            class="text-gray-500 hover:text-indigo-400 transition-colors text-sm">Privacy Policy</a>
+                    </li>
+                    <li><a href="/terms.html"
+                            class="text-gray-500 hover:text-indigo-400 transition-colors text-sm">Terms & Conditions</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div
+            class="max-w-7xl mx-auto px-6 border-t border-[#1a1a1a] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">
+            <p>&copy; 2026 Aura AI Systems. All rights reserved.</p>
+            <p class="flex items-center gap-1">Designed by the <span class="text-white font-medium">DeepMind Coding
+                    Agent</span></p>
+        </div>
+    </footer>
+</body>
+
+</html>
