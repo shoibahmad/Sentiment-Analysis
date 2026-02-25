@@ -2,294 +2,446 @@ import { API_BASE } from './api.js';
 import { auth, onAuthStateChanged } from './firebaseConfig.js';
 
 let currentUser = null;
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-    } else {
-        window.location.href = "auth.html";
-    }
-});
-
-// --- Admin Portal Logic ---
-const loginBtn = document.getElementById("loginBtn");
 let adminChart = null;
 let currentPage = 0;
 const PAGE_SIZE = 15;
+let tableSearch = '';
 
-if (loginBtn) {
-    loginBtn.addEventListener("click", () => {
-        const user = document.getElementById("username").value;
-        const pass = document.getElementById("password").value;
-        const err = document.getElementById("loginError");
+onAuthStateChanged(auth, (user) => {
+    if (user) { currentUser = user; }
+    else { window.location.href = "auth.html"; }
+});
 
-        if (user === "admin" && pass === "password123") {
-            document.getElementById("loginOverlay").style.display = "none";
+// ============================================================
+// ✅ ALL GLOBAL FUNCTIONS — exposed on window so onclick attrs work
+// ============================================================
 
-            const adminHeader = document.getElementById("adminHeader");
-            const dashboard = document.getElementById("dashboard");
-            const adminFooter = document.getElementById("adminFooter");
-
-            if (adminHeader) adminHeader.classList.remove("hidden");
-            if (dashboard) {
-                dashboard.classList.remove("hidden");
-                dashboard.classList.add("flex");
-            }
-            if (adminFooter) adminFooter.classList.remove("hidden");
-
-            fetchAdminData();
-            fetchAdminVisuals();
-
-        } else {
-            err.classList.remove("hidden");
-        }
+window.switchAdminTab = function (tab) {
+    ['stats', 'users', 'log'].forEach(t => {
+        document.getElementById(`panel${cap(t)}`)?.classList.add('hidden');
+        document.getElementById(`adminTab${cap(t)}`)?.classList.remove('active');
     });
+    document.getElementById(`panel${cap(tab)}`)?.classList.remove('hidden');
+    document.getElementById(`adminTab${cap(tab)}`)?.classList.add('active');
 
-    // Press enter to login
-    const passInput = document.getElementById("password");
-    if (passInput) {
-        passInput.addEventListener("keypress", function (event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                loginBtn.click();
-            }
-        });
-    }
+    if (tab === 'users') fetchUsers();
+};
 
-    // Pagination Listeners
-    document.getElementById("prevBtn").addEventListener("click", () => {
-        if (currentPage > 0) {
-            currentPage--;
-            fetchAdminData();
-        }
-    });
+window.fetchAdminData = async function () {
+    const lastUpdated = document.getElementById("lastUpdated");
+    const syncTime = document.getElementById("syncTime");
+    if (lastUpdated) lastUpdated.textContent = "Syncing...";
 
-    document.getElementById("nextBtn").addEventListener("click", () => {
-        currentPage++;
-        fetchAdminData();
-    });
-
-    // Filter Listener
-    document.getElementById("sentimentFilter").addEventListener("change", () => {
-        currentPage = 0; // reset
-        fetchAdminData();
-    });
-
-    // Refresh Button Listener
-    const refreshBtn = document.getElementById("refreshBtn");
-    if (refreshBtn) {
-        refreshBtn.addEventListener("click", () => {
-            fetchAdminData();
-            fetchAdminVisuals();
-        });
-    }
-
-    // Download Listener
-    const exportBtn = document.getElementById("exportBtn");
-    if (exportBtn) {
-        exportBtn.addEventListener("click", () => {
-            window.location.href = `${API_BASE}/admin/export`;
-        });
-    }
-}
-
-
-async function fetchAdminData() {
     try {
-        const lastUpdated = document.getElementById("lastUpdated");
-        if (lastUpdated) lastUpdated.textContent = "Sync pending...";
-
-        const filterStr = document.getElementById("sentimentFilter").value;
-        const token = currentUser ? await currentUser.getIdToken() : '';
-        const res = await fetch(`${API_BASE}/admin/stats?skip=${currentPage * PAGE_SIZE}&limit=${PAGE_SIZE}&sentiment=${filterStr}`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
-        if (!res.ok) throw new Error("Failed to fetch admin data.");
+        const filterStr = document.getElementById("sentimentFilter")?.value || 'All';
+        const token = await getToken();
+        const url = `${API_BASE}/admin/stats?skip=${currentPage * PAGE_SIZE}&limit=${PAGE_SIZE}&sentiment=${filterStr}`;
+        const res = await fetch(url, { headers: { "Authorization": `Bearer ${token}` } });
+        if (!res.ok) throw new Error("HTTP " + res.status);
 
         const data = await res.json();
-        const summary = data.summary;
+        updateStatCards(data.summary);
+        renderAdminTable(data);
 
-        // Update Top Stats
-        document.getElementById("statTotal").textContent = summary.total_queries;
-        document.getElementById("statPositive").textContent = summary.total_positive;
-        document.getElementById("statNegative").textContent = summary.total_negative;
-        document.getElementById("statNeutral").textContent = summary.total_neutral;
-
-        // Update Table
-        const tbody = document.getElementById("adminTableBody");
-        const emptyState = document.getElementById("tableEmptyState");
-
-        if (!tbody || !emptyState) return;
-
-        tbody.innerHTML = "";
-
-        if (data.all_queries.length === 0) {
-            emptyState.classList.remove("hidden");
-            document.querySelector("table").classList.add("hidden");
-        } else {
-            emptyState.classList.add("hidden");
-            document.querySelector("table").classList.remove("hidden");
-
-            data.all_queries.forEach(q => {
-                const tr = document.createElement("tr");
-                tr.className = "transition-colors group hover:bg-[#1a1a1a]";
-
-                let dotClass = "bg-gray-500 text-gray-400";
-                if (q.sentiment === "Positive") dotClass = "bg-[#064e3b] text-emerald-400 border border-emerald-900";
-                else if (q.sentiment === "Negative") dotClass = "bg-rose-900/30 text-rose-400 border border-rose-900/50";
-
-                tr.innerHTML = `
-                    <td class="px-6 py-4 text-gray-500 font-mono text-xs">#${String(q.id).padStart(4, '0')}</td>
-                    <td class="px-6 py-4">
-                        <div class="max-w-md truncate font-medium text-gray-300" title="${q.text}">${q.text}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${dotClass}">
-                            ${q.sentiment}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-2 max-w-[120px]">
-                            <div class="flex-1 bg-[#262626] rounded-full h-1.5 border border-[#333]">
-                                <div class="h-1.5 rounded-full bg-gray-400" style="width: ${Math.round(q.confidence * 100)}%"></div>
-                            </div>
-                            <span class="text-xs font-semibold text-gray-400">${Math.round(q.confidence * 100)}%</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-gray-500 text-sm">${new Date(q.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Update Pagination Info
-        const totalMatching = data.filtered_total;
-        const startIdx = totalMatching === 0 ? 0 : (currentPage * PAGE_SIZE) + 1;
-        const endIdx = Math.min((currentPage + 1) * PAGE_SIZE, totalMatching);
-
-        document.getElementById("pageInfo").textContent = `Showing ${startIdx} to ${endIdx} of ${totalMatching}`;
-        document.getElementById("prevBtn").disabled = currentPage === 0;
-        document.getElementById("nextBtn").disabled = endIdx >= totalMatching;
-
-        if (lastUpdated) lastUpdated.textContent = `Synced ${new Date().toLocaleTimeString()}`;
+        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (lastUpdated) lastUpdated.textContent = `Synced ${now}`;
+        if (syncTime) syncTime.textContent = now;
 
     } catch (err) {
-        console.error(err);
-        const lastUpdated = document.getElementById("lastUpdated");
-        if (lastUpdated) lastUpdated.textContent = "Data sync failed.";
+        console.error("fetchAdminData error:", err);
+        if (lastUpdated) lastUpdated.textContent = "Sync failed";
+    }
+};
+
+window.fetchAdminVisuals = async function () {
+    try {
+        const token = await getToken();
+        await Promise.all([
+            loadTrendChart(token),
+            loadWordCloud(token)
+        ]);
+    } catch (err) {
+        console.error("fetchAdminVisuals error:", err);
+    }
+};
+
+window.downloadCSV = async function () {
+    const btn = document.querySelector('[onclick="downloadCSV()"]');
+    if (btn) { btn.textContent = 'Exporting...'; btn.disabled = true; }
+
+    try {
+        const token = await getToken();
+        const res = await fetch(`${API_BASE}/admin/export`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Export failed: " + res.status);
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const ts = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        a.href = url;
+        a.download = `aura_export_${ts}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+    } catch (err) {
+        console.error("CSV export error:", err);
+        alert('Export failed. Please try again.');
+    } finally {
+        if (btn) {
+            btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Export CSV`;
+            btn.disabled = false;
+        }
+    }
+};
+
+window.deleteUser = async function (uid) {
+    if (!confirm('Permanently delete this user and all their data? This cannot be undone.')) return;
+    try {
+        const token = await getToken();
+        const res = await fetch(`${API_BASE}/admin/users/${uid}`, {
+            method: 'DELETE',
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Delete failed: ' + res.status);
+        fetchUsers();
+    } catch (err) {
+        alert('Failed to delete user: ' + err.message);
+    }
+};
+
+// ============================================================
+// Login
+// ============================================================
+const loginBtn = document.getElementById("loginBtn");
+if (loginBtn) {
+    loginBtn.addEventListener("click", doLogin);
+    document.getElementById("password")?.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); doLogin(); }
+    });
+}
+
+function doLogin() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const err = document.getElementById("loginError");
+
+    if (username === "admin" && password === "password123") {
+        document.getElementById("loginOverlay").style.display = "none";
+        document.getElementById("adminHeader").classList.remove("hidden");
+        const dashboard = document.getElementById("dashboard");
+        if (dashboard) { dashboard.classList.remove("hidden"); dashboard.classList.add("flex"); }
+        document.getElementById("adminFooter")?.classList.remove("hidden");
+
+        // Wire up after-login event listeners
+        document.getElementById("prevBtn")?.addEventListener("click", () => {
+            if (currentPage > 0) { currentPage--; window.fetchAdminData(); }
+        });
+        document.getElementById("nextBtn")?.addEventListener("click", () => {
+            currentPage++; window.fetchAdminData();
+        });
+        document.getElementById("sentimentFilter")?.addEventListener("change", () => {
+            currentPage = 0; window.fetchAdminData();
+        });
+        document.getElementById("tableSearch")?.addEventListener("input", (e) => {
+            tableSearch = e.target.value; currentPage = 0; window.fetchAdminData();
+        });
+
+        window.fetchAdminData();
+        window.fetchAdminVisuals();
+    } else {
+        if (err) err.classList.remove("hidden");
     }
 }
 
+// ============================================================
+// Helpers
+// ============================================================
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+async function getToken() {
+    return currentUser ? await currentUser.getIdToken() : '';
+}
 
-async function fetchAdminVisuals() {
-    try {
-        // --- 1. Fetch Trend Data for Chart.js ---
-        const token = currentUser ? await currentUser.getIdToken() : '';
-        const trendRes = await fetch(`${API_BASE}/admin/trends`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
+// ============================================================
+// Stats Cards
+// ============================================================
+function updateStatCards(s) {
+    const total = s.total_queries || 0;
+    document.getElementById("statTotal").textContent = total;
+    document.getElementById("statPositive").textContent = s.total_positive;
+    document.getElementById("statNegative").textContent = s.total_negative;
+    document.getElementById("statNeutral").textContent = s.total_neutral;
+
+    if (total > 0) {
+        const posP = Math.round((s.total_positive / total) * 100);
+        const negP = Math.round((s.total_negative / total) * 100);
+        const neuP = Math.round((s.total_neutral / total) * 100);
+        setBar("posBar", "posPercent", posP);
+        setBar("negBar", "negPercent", negP);
+        setBar("neuBar", "neuPercent", neuP);
+    }
+}
+
+function setBar(barId, percentId, pct) {
+    const bar = document.getElementById(barId);
+    const lbl = document.getElementById(percentId);
+    if (bar) bar.style.width = pct + '%';
+    if (lbl) lbl.textContent = pct + '%';
+}
+
+// ============================================================
+// Admin Table
+// ============================================================
+function renderAdminTable(data) {
+    const tbody = document.getElementById("adminTableBody");
+    const emptyEl = document.getElementById("tableEmptyState");
+    const table = tbody?.closest('table');
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    let queries = data.all_queries || [];
+    if (tableSearch.trim()) {
+        queries = queries.filter(q => (q.text || '').toLowerCase().includes(tableSearch.toLowerCase()));
+    }
+
+    if (queries.length === 0) {
+        emptyEl?.classList.remove("hidden");
+        table?.classList.add("hidden");
+    } else {
+        emptyEl?.classList.add("hidden");
+        table?.classList.remove("hidden");
+
+        queries.forEach((q, idx) => {
+            const tr = document.createElement("tr");
+            tr.className = "transition-colors hover:bg-[#141414]";
+
+            const confPct = Math.round((q.confidence || 0) * 100);
+            const barColor = q.sentiment === 'Positive' ? '#34d399'
+                : q.sentiment === 'Negative' ? '#fb7185' : '#9ca3af';
+
+            let badgeCls = "bg-[#1f1f1f] text-gray-400 border border-[#262626]";
+            if (q.sentiment === "Positive") badgeCls = "bg-emerald-900/20 text-emerald-400 border border-emerald-900/40";
+            if (q.sentiment === "Negative") badgeCls = "bg-rose-900/20 text-rose-400 border border-rose-900/40";
+
+            const date = q.timestamp
+                ? new Date(q.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                : '—';
+            const lang = (q.language || 'en').toUpperCase();
+
+            tr.innerHTML = `
+                <td class="px-5 py-3.5 text-gray-600 font-mono text-xs">${currentPage * PAGE_SIZE + idx + 1}</td>
+                <td class="px-5 py-3.5 max-w-xs">
+                    <div class="truncate text-gray-300 text-xs" title="${q.text}">${q.text || '—'}</div>
+                </td>
+                <td class="px-5 py-3.5">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${badgeCls}">${q.sentiment}</span>
+                </td>
+                <td class="px-5 py-3.5">
+                    <div class="flex items-center gap-2 w-24">
+                        <div class="flex-1 bg-[#1a1a1a] rounded-full h-1 border border-[#262626]">
+                            <div class="h-1 rounded-full" style="width:${confPct}%;background:${barColor}"></div>
+                        </div>
+                        <span class="text-xs text-gray-500 flex-shrink-0 w-7 text-right">${confPct}%</span>
+                    </div>
+                </td>
+                <td class="px-5 py-3.5">
+                    <span class="text-xs bg-[#1a1a1a] border border-[#262626] text-gray-500 px-1.5 py-0.5 rounded font-mono">${lang}</span>
+                </td>
+                <td class="px-5 py-3.5 text-gray-500 text-xs whitespace-nowrap">${date}</td>
+            `;
+            tbody.appendChild(tr);
         });
-        if (trendRes.ok) {
-            const trendData = await trendRes.json();
+    }
 
-            const labels = Object.keys(trendData);
-            const posData = labels.map(date => trendData[date].Positive || 0);
-            const negData = labels.map(date => trendData[date].Negative || 0);
+    // Pagination info
+    const total = data.filtered_total || 0;
+    const startIdx = total === 0 ? 0 : currentPage * PAGE_SIZE + 1;
+    const endIdx = Math.min((currentPage + 1) * PAGE_SIZE, total);
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const pageInfo = document.getElementById("pageInfo");
+    if (pageInfo) pageInfo.textContent = `Showing ${startIdx}–${endIdx} of ${total}`;
+    if (prevBtn) prevBtn.disabled = currentPage === 0;
+    if (nextBtn) nextBtn.disabled = endIdx >= total;
+}
 
-            const ctx = document.getElementById('trendChart');
-            if (ctx) {
-                if (adminChart) adminChart.destroy();
+// ============================================================
+// Users Tab
+// ============================================================
+async function fetchUsers() {
+    const el = document.getElementById('usersList');
+    const badge = document.getElementById('userCountBadge');
+    if (!el) return;
 
-                // Set Chart.js Defaults for Dark Mode
-                Chart.defaults.color = '#a3a3a3';
-                Chart.defaults.borderColor = '#262626';
+    el.innerHTML = '<div class="p-8 text-center text-gray-600 text-sm">Loading users...</div>';
 
-                adminChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels.length > 0 ? labels : ['No Data'],
-                        datasets: [
-                            {
-                                label: 'Positive',
-                                data: posData.length > 0 ? posData : [0],
-                                borderColor: '#34d399', // emerald-400
-                                backgroundColor: 'rgba(52, 211, 153, 0.1)',
-                                tension: 0.4,
-                                fill: true
-                            },
-                            {
-                                label: 'Negative',
-                                data: negData.length > 0 ? negData : [0],
-                                borderColor: '#fb7185', // rose-400
-                                backgroundColor: 'rgba(251, 113, 133, 0.1)',
-                                tension: 0.4,
-                                fill: true
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false,
-                        },
-                        scales: {
-                            y: { min: 0 }
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                            }
-                        }
-                    }
-                });
-            }
+    try {
+        const token = await getToken();
+        const res = await fetch(`${API_BASE}/admin/users`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const users = await res.json();
+
+        if (badge) badge.textContent = `${users.length} account${users.length !== 1 ? 's' : ''}`;
+
+        if (users.length === 0) {
+            el.innerHTML = '<div class="p-8 text-center text-gray-600 text-sm">No registered users found.</div>';
+            return;
         }
 
-        // --- 2. Fetch Word Frequencies for WordCloud ---
-        const wordRes = await fetch(`${API_BASE}/admin/word-frequencies`, {
-            headers: {
-                "Authorization": `Bearer ${token}` // token is already defined in this scope
-            }
-        });
-        if (wordRes.ok) {
-            const wordFreqs = await wordRes.json();
-            const canvas = document.getElementById('wordCloudCanvas');
-            const emptyText = document.getElementById('cloudEmpty');
+        el.innerHTML = users.map(u => {
+            const name = u.name || u.email?.split('@')[0] || 'Unknown User';
+            const email = u.email || '—';
+            const initial = name.charAt(0).toUpperCase();
+            const queries = u.query_count || 0;
+            const created = u.created_at
+                ? new Date(u.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: '2-digit' })
+                : '—';
 
-            if (canvas) {
-                if (wordFreqs.length === 0) {
-                    emptyText.classList.remove('hidden');
-                } else {
-                    emptyText.classList.add('hidden');
-                    // Format for WordCloud: [word, weight, sentiment]
-                    const list = wordFreqs.map(w => [w.text, w.weight * 15, w.sentiment]); // multiplier for visual sizing
+            // Color initial avatar based on query volume
+            const colors = ['from-indigo-600 to-purple-500', 'from-emerald-600 to-teal-500', 'from-rose-600 to-pink-500', 'from-amber-600 to-orange-500', 'from-blue-600 to-cyan-500'];
+            const colorClass = colors[name.charCodeAt(0) % colors.length];
 
-                    WordCloud(canvas, {
-                        list: list,
-                        gridSize: 8,
-                        weightFactor: 1,
-                        fontFamily: 'Inter, sans-serif',
-                        color: function (word, weight, fontSize, distance, theta) {
-                            // Find sentiment to assign color in callback (inefficient but works for small lists)
-                            const item = wordFreqs.find(i => i.text === word);
-                            if (item && item.sentiment === "Positive") return '#4ade80'; // emerald-400 ish
-                            if (item && item.sentiment === "Negative") return '#fb7185'; // rose-400 ish
-                            return '#a3a3a3';
-                        },
-                        backgroundColor: '#0c0c0c',
-                        shrinkToFit: true,
-                        drawOutOfBound: false
-                    });
+            return `<div class="user-row">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-tr ${colorClass} flex items-center justify-center text-white font-bold text-sm flex-shrink-0">${initial}</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-white truncate">${name}</p>
+                    <p class="text-xs text-gray-500 truncate">${email}</p>
+                </div>
+                <div class="hidden sm:flex items-center gap-5 text-xs text-gray-600 flex-shrink-0">
+                    <div class="text-center">
+                        <p class="text-sm font-bold ${queries > 0 ? 'text-emerald-400' : 'text-gray-500'}">${queries}</p>
+                        <p class="text-[9px] uppercase tracking-wider">queries</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-400">${created}</p>
+                        <p class="text-[9px] uppercase tracking-wider">joined</p>
+                    </div>
+                </div>
+                <button onclick="deleteUser('${u.uid}')" class="delete-btn ml-2 px-2.5 py-1.5 bg-rose-900/20 border border-rose-900/40 text-rose-400 hover:bg-rose-900/40 rounded-lg text-xs transition-all flex-shrink-0 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Delete
+                </button>
+            </div>`;
+        }).join('');
+
+    } catch (err) {
+        console.error("fetchUsers error:", err);
+        el.innerHTML = '<div class="p-8 text-center text-gray-600 text-sm">Failed to load users. Check console.</div>';
+    }
+}
+
+// ============================================================
+// Trend Chart
+// ============================================================
+async function loadTrendChart(token) {
+    const res = await fetch(`${API_BASE}/admin/trends`, {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+
+    const trendData = await res.json();
+    const labels = Object.keys(trendData).sort();
+    const posData = labels.map(d => trendData[d]?.Positive || 0);
+    const negData = labels.map(d => trendData[d]?.Negative || 0);
+    const neuData = labels.map(d => trendData[d]?.Neutral || 0);
+    const ctx = document.getElementById('trendChart');
+    if (!ctx) return;
+
+    if (adminChart) adminChart.destroy();
+    Chart.defaults.color = '#6b7280';
+    Chart.defaults.borderColor = '#1f1f1f';
+
+    adminChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.length > 0 ? labels : ['No Data'],
+            datasets: [
+                {
+                    label: 'Positive', data: posData.length > 0 ? posData : [0],
+                    borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,0.08)',
+                    tension: 0.4, fill: true, borderWidth: 2,
+                    pointRadius: 3, pointHoverRadius: 6,
+                    pointBackgroundColor: '#0a0a0a', pointBorderColor: '#34d399'
+                },
+                {
+                    label: 'Negative', data: negData.length > 0 ? negData : [0],
+                    borderColor: '#fb7185', backgroundColor: 'rgba(251,113,133,0.08)',
+                    tension: 0.4, fill: true, borderWidth: 2,
+                    pointRadius: 3, pointHoverRadius: 6,
+                    pointBackgroundColor: '#0a0a0a', pointBorderColor: '#fb7185'
+                },
+                {
+                    label: 'Neutral', data: neuData.length > 0 ? neuData : [0],
+                    borderColor: '#6b7280', backgroundColor: 'rgba(107,114,128,0.05)',
+                    tension: 0.4, fill: false, borderWidth: 1.5, borderDash: [4, 4],
+                    pointRadius: 2, pointHoverRadius: 4,
+                    pointBackgroundColor: '#0a0a0a', pointBorderColor: '#6b7280'
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                y: {
+                    min: 0,
+                    grid: { color: 'rgba(255,255,255,0.03)' },
+                    ticks: { color: '#6b7280', precision: 0 }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#6b7280', maxTicksLimit: 8 }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.9)',
+                    titleColor: '#fff', bodyColor: '#d1d5db',
+                    borderColor: '#333', borderWidth: 1
                 }
             }
         }
+    });
+}
 
-    } catch (err) {
-        console.error("Failed to load visuals", err);
+// ============================================================
+// Word Cloud
+// ============================================================
+async function loadWordCloud(token) {
+    const res = await fetch(`${API_BASE}/admin/word-frequencies`, {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+
+    const wordFreqs = await res.json();
+    const canvas = document.getElementById('wordCloudCanvas');
+    const emptyText = document.getElementById('cloudEmpty');
+    if (!canvas) return;
+
+    if (!wordFreqs || wordFreqs.length === 0) {
+        emptyText?.classList.remove('hidden');
+        return;
     }
+    emptyText?.classList.add('hidden');
+
+    const list = wordFreqs.map(w => [w.text, w.weight * 15]);
+    WordCloud(canvas, {
+        list, gridSize: 8, weightFactor: 1,
+        fontFamily: 'Inter, sans-serif',
+        color: (word) => {
+            const item = wordFreqs.find(i => i.text === word);
+            if (item?.sentiment === "Positive") return '#4ade80';
+            if (item?.sentiment === "Negative") return '#fb7185';
+            return '#6b7280';
+        },
+        backgroundColor: '#0c0c0c',
+        shrinkToFit: true, drawOutOfBound: false
+    });
 }

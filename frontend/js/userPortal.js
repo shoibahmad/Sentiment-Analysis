@@ -143,6 +143,7 @@ async function triggerAnalysis(isManual = false) {
         if (document.getElementById('bulkResultContent')) document.getElementById('bulkResultContent').classList.add('hidden');
 
         updateSingleResultUI(data);
+        triggerAiInsights(data);  // ✨ Gemini AI insights
         fetchRecentAnalyses();
         fetchPersonalStats();
 
@@ -476,3 +477,207 @@ async function fetchPersonalStats() {
 }
 
 // Removed global init because it fires before auth is ready.
+
+
+// ============================================================
+// ✨  GEMINI AI INSIGHT PANEL
+// ============================================================
+
+let currentAnalysisData = null; // stores latest analysis for AI calls
+let rewritesLoaded = false;     // prevent duplicate rewrite API calls
+
+/**
+ * Called after every successful single-text analysis.
+ * Shows the AI panel and auto-fetches the Gemini explanation.
+ */
+async function triggerAiInsights(data) {
+    currentAnalysisData = data;
+    rewritesLoaded = false;
+
+    // Reset rewrite UI
+    const rewriteContent = document.getElementById('aiRewriteContent');
+    const rewriteHint = document.getElementById('aiRewriteHint');
+    const rewriteLoading = document.getElementById('aiRewriteLoading');
+    if (rewriteContent) rewriteContent.classList.add('hidden');
+    if (rewriteHint) rewriteHint.classList.remove('hidden');
+    if (rewriteLoading) rewriteLoading.classList.add('hidden');
+
+    // Reset explain UI to loading state
+    const explainLoading = document.getElementById('aiExplainLoading');
+    const explainContent = document.getElementById('aiExplainContent');
+    if (explainLoading) explainLoading.classList.remove('hidden');
+    if (explainContent) explainContent.classList.add('hidden');
+
+    // Switch to Explanation tab
+    switchAiTab('explain');
+
+    // Show the panel
+    const panel = document.getElementById('aiInsightSection');
+    if (panel) {
+        panel.classList.remove('hidden');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Fetch explanation from Gemini
+    try {
+        const token = currentUser ? await currentUser.getIdToken() : '';
+        const res = await fetch(`${API_BASE}/ai/explain`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                text: data.text,
+                sentiment: data.sentiment,
+                confidence: data.confidence,
+                language: data.language || 'unknown',
+                emotions: data.emotions || {},
+                entities: data.entities || [],
+                aspects: data.aspects || {}
+            })
+        });
+
+        if (!res.ok) throw new Error('AI explain failed');
+        const result = await res.json();
+
+        // Render (supports simple markdown: **bold**, bullet lines)
+        if (explainLoading) explainLoading.classList.add('hidden');
+        if (explainContent) {
+            explainContent.classList.remove('hidden');
+            const textEl = document.getElementById('aiExplainText');
+            if (textEl) textEl.innerHTML = renderSimpleMarkdown(result.explanation);
+        }
+    } catch (err) {
+        console.error('Gemini explain error:', err);
+        if (explainLoading) explainLoading.classList.add('hidden');
+        if (explainContent) {
+            explainContent.classList.remove('hidden');
+            const textEl = document.getElementById('aiExplainText');
+            if (textEl) textEl.textContent = 'AI explanation could not be loaded. Please try again.';
+        }
+    }
+}
+
+/**
+ * Renders minimal markdown (bold, bullet points) to HTML.
+ */
+function renderSimpleMarkdown(text) {
+    if (!text) return '';
+    return text
+        .split('\n')
+        .map(line => {
+            line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            if (/^[-*]\s/.test(line)) {
+                return `<div class="flex gap-2 items-start"><span class="text-violet-400 mt-0.5">•</span><span>${line.replace(/^[-*]\s/, '')}</span></div>`;
+            }
+            if (/^#{1,3}\s/.test(line)) {
+                return `<p class="font-semibold text-white mt-3">${line.replace(/^#{1,3}\s/, '')}</p>`;
+            }
+            return line ? `<p>${line}</p>` : '<br>';
+        })
+        .join('');
+}
+
+/**
+ * Load tone rewrites on demand (button click).
+ */
+async function loadToneRewrites() {
+    if (rewritesLoaded || !currentAnalysisData) return;
+
+    const loadingEl = document.getElementById('aiRewriteLoading');
+    const contentEl = document.getElementById('aiRewriteContent');
+    const hintEl = document.getElementById('aiRewriteHint');
+    const btn = document.getElementById('loadRewritesBtn');
+
+    if (loadingEl) { loadingEl.classList.remove('hidden'); loadingEl.classList.add('flex'); }
+    if (hintEl) hintEl.classList.add('hidden');
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
+
+    try {
+        const token = currentUser ? await currentUser.getIdToken() : '';
+        const res = await fetch(`${API_BASE}/ai/rewrite`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ text: currentAnalysisData.text })
+        });
+
+        if (!res.ok) throw new Error('AI rewrite failed');
+        const result = await res.json();
+        const rewrites = result.rewrites;
+
+        document.getElementById('rewritePositive').textContent = rewrites.positive || '';
+        document.getElementById('rewriteNeutral').textContent = rewrites.neutral || '';
+        document.getElementById('rewriteFormal').textContent = rewrites.formal || '';
+
+        if (contentEl) contentEl.classList.remove('hidden');
+        rewritesLoaded = true;
+
+    } catch (err) {
+        console.error('Gemini rewrite error:', err);
+        if (hintEl) {
+            hintEl.textContent = 'Could not generate rewrites. Please try again.';
+            hintEl.classList.remove('hidden');
+        }
+    } finally {
+        if (loadingEl) { loadingEl.classList.add('hidden'); loadingEl.classList.remove('flex'); }
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Generate Tone Rewrites`;
+        }
+    }
+}
+
+/**
+ * Switch between AI tabs (explain / rewrite).
+ */
+function switchAiTab(tab) {
+    const explainPanel = document.getElementById('aiExplainPanel');
+    const rewritePanel = document.getElementById('aiRewritePanel');
+    const tabExplain = document.getElementById('tabExplain');
+    const tabRewrite = document.getElementById('tabRewrite');
+
+    if (tab === 'explain') {
+        if (explainPanel) explainPanel.classList.remove('hidden');
+        if (rewritePanel) rewritePanel.classList.add('hidden');
+        if (tabExplain) {
+            tabExplain.classList.add('text-violet-400', 'border-violet-500');
+            tabExplain.classList.remove('text-gray-500', 'border-transparent');
+        }
+        if (tabRewrite) {
+            tabRewrite.classList.remove('text-violet-400', 'border-violet-500');
+            tabRewrite.classList.add('text-gray-500', 'border-transparent');
+        }
+    } else {
+        if (rewritePanel) rewritePanel.classList.remove('hidden');
+        if (explainPanel) explainPanel.classList.add('hidden');
+        if (tabRewrite) {
+            tabRewrite.classList.add('text-violet-400', 'border-violet-500');
+            tabRewrite.classList.remove('text-gray-500', 'border-transparent');
+        }
+        if (tabExplain) {
+            tabExplain.classList.remove('text-violet-400', 'border-violet-500');
+            tabExplain.classList.add('text-gray-500', 'border-transparent');
+        }
+    }
+}
+
+/**
+ * Copy a rewrite to clipboard.
+ */
+function copyRewrite(tone) {
+    const el = document.getElementById(`rewrite${tone.charAt(0).toUpperCase() + tone.slice(1)}`);
+    if (!el) return;
+    navigator.clipboard.writeText(el.textContent).then(() => {
+        const allBtns = document.querySelectorAll('[onclick^="copyRewrite"]');
+        allBtns.forEach(b => { if (b.getAttribute('onclick').includes(tone)) { b.textContent = '✓ Copied!'; setTimeout(() => b.textContent = 'Copy', 2000); } });
+    });
+}
+
+// Expose functions to global scope for inline onclick handlers in HTML
+window.switchAiTab = switchAiTab;
+window.loadToneRewrites = loadToneRewrites;
+window.copyRewrite = copyRewrite;

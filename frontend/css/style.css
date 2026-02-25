@@ -7,11 +7,20 @@ body {
 }
 
 /* Animations */
-.anim-fade-in { animation: fadeIn 0.4s ease-out; }
+.anim-fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Generic Minimal Card */
@@ -29,10 +38,24 @@ body {
 }
 
 /* Scrollbar Customization */
-::-webkit-scrollbar { width: 8px; height: 8px;}
-::-webkit-scrollbar-track { background: #0c0c0c; border-radius: 4px; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #555; }
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0c0c0c;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
 
 /* Text Utilities */
 .text-gradient {
@@ -52,10 +75,75 @@ body {
 }
 
 /* Admin Table Specifics */
-table { border-collapse: separate; border-spacing: 0; }
-th {
-    background-color: #1a1a1a; color: #a3a3a3; font-weight: 500;
-    text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;
+table {
+    border-collapse: separate;
+    border-spacing: 0;
 }
-td { color: #d4d4d4; font-size: 0.875rem; }
-tbody tr:hover { background-color: #1a1a1a; }
+
+th {
+    background-color: #0f0f0f;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+}
+
+td {
+    color: #d4d4d4;
+    font-size: 0.8125rem;
+}
+
+tbody tr:hover {
+    background-color: #141414;
+}
+
+/* Dashboard Badge Utilities */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+
+.badge-pos {
+    background: rgba(5, 150, 105, 0.12);
+    color: #34d399;
+    border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+.badge-neg {
+    background: rgba(190, 18, 60, 0.12);
+    color: #fb7185;
+    border: 1px solid rgba(251, 113, 133, 0.2);
+}
+
+.badge-neu {
+    background: rgba(82, 82, 82, 0.2);
+    color: #9ca3af;
+    border: 1px solid #404040;
+}
+
+/* History row hover */
+.history-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid #1a1a1a;
+    transition: all 0.15s;
+}
+
+.history-row:last-child {
+    border-bottom: none;
+}
+
+/* Progress ring transition */
+.progress-ring circle {
+    transition: stroke-dashoffset 1s ease;
+}

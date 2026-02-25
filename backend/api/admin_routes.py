@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
+from fastapi.responses import StreamingResponse
 from core.security import verify_firebase_token
 from core.config import db
 from collections import defaultdict
+from datetime import datetime
 import json
+import io
+import csv
 
 router = APIRouter()
 
@@ -142,30 +146,38 @@ def delete_query(query_id: str, user=Depends(verify_firebase_token)):
 
 @router.get("/users")
 def get_admin_users(user=Depends(verify_firebase_token)):
-    from firebase_admin import auth
+    from firebase_admin import auth as fb_auth
     try:
-        page = auth.list_users()
+        # Count per-user queries if DB available
+        query_counts = {}
+        if db:
+            for doc in db.collection("queries").stream():
+                uid = doc.to_dict().get("uid", "anonymous")
+                query_counts[uid] = query_counts.get(uid, 0) + 1
+
+        page = fb_auth.list_users()
         users_list = []
-        for user_record in page.users:
-            users_list.append({
-                "uid": user_record.uid,
-                "email": user_record.email,
-                "displayName": user_record.display_name or "Unknown User",
-                "creationTime": user_record.user_metadata.creation_timestamp,
-                "lastSignInTime": user_record.user_metadata.last_sign_in_timestamp
-            })
-            
+
+        def process_user(r):
+            ct = r.user_metadata.creation_timestamp
+            created_at = datetime.utcfromtimestamp(ct / 1000).isoformat() if ct else None
+            return {
+                "uid": r.uid,
+                "email": r.email or "",
+                "name": r.display_name or r.email or "Unknown User",
+                "created_at": created_at,
+                "query_count": query_counts.get(r.uid, 0)
+            }
+
+        for r in page.users:
+            users_list.append(process_user(r))
+
         while page.has_next_page:
             page = page.get_next_page()
-            for user_record in page.users:
-                users_list.append({
-                    "uid": user_record.uid,
-                    "email": user_record.email,
-                    "displayName": user_record.display_name or "Unknown User",
-                    "creationTime": user_record.user_metadata.creation_timestamp,
-                    "lastSignInTime": user_record.user_metadata.last_sign_in_timestamp
-                })
-                
+            for r in page.users:
+                users_list.append(process_user(r))
+
+        users_list.sort(key=lambda u: u.get("query_count", 0), reverse=True)
         return users_list
     except Exception as e:
         print(f"Error fetching users: {e}")
@@ -198,3 +210,44 @@ def delete_admin_user(uid: str, user=Depends(verify_firebase_token)):
     except Exception as e:
         print(f"Error deleting user {uid}: {e}")
         return {"success": False, "message": str(e)}
+
+
+@router.get("/export")
+def export_queries_csv(user=Depends(verify_firebase_token)):
+    """Export all queries to a downloadable CSV file."""
+    if not db:
+        return Response(content="No database connected", media_type="text/plain")
+
+    docs = list(db.collection("queries").stream())
+
+    def get_ts(d):
+        ts = d.to_dict().get("timestamp")
+        return ts.timestamp() if hasattr(ts, 'timestamp') else 0
+
+    docs.sort(key=get_ts, reverse=True)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["#", "Text", "Sentiment", "Confidence", "Language", "Timestamp", "UID"])
+
+    for idx, doc in enumerate(docs, 1):
+        d = doc.to_dict()
+        ts = d.get("timestamp")
+        ts_str = ts.isoformat() if hasattr(ts, 'isoformat') else str(ts)
+        writer.writerow([
+            idx,
+            d.get("text", ""),
+            d.get("sentiment", "Neutral"),
+            f"{round(d.get('confidence', 0) * 100)}%",
+            d.get("language", "unknown"),
+            ts_str,
+            d.get("uid", "anonymous")
+        ])
+
+    csv_bytes = output.getvalue().encode('utf-8')
+    filename = f"aura_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+    return Response(
+        content=csv_bytes,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )

@@ -4,199 +4,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aura - Admin Portal</title>
+    <title>Aura - Admin Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js and WordCloud -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .admin-stat {
+            background: #141414;
+            border: 1px solid #1f1f1f;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-stat::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .admin-stat:hover {
+            border-color: #333;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .admin-stat:hover::before {
+            opacity: 1;
+        }
+
+        .admin-tab {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .admin-tab.active {
+            background: #1f1f1f;
+            color: #fff;
+        }
+
+        .user-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .user-row:hover {
+            background: #1a1a1a;
+        }
+
+        .health-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: healthPulse 2s ease-in-out infinite;
+        }
+
+        .health-dot.green {
+            background: #34d399;
+            box-shadow: 0 0 6px #34d399;
+        }
+
+        .health-dot.amber {
+            background: #fbbf24;
+            box-shadow: 0 0 6px #fbbf24;
+        }
+
+        @keyframes healthPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .login-glass {
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+        }
+
+        tbody tr {
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover td:first-child {
+            border-left: 2px solid #34d399;
+        }
+
+        .stat-sparkline {
+            height: 32px;
+            overflow: hidden;
+        }
+
+        .delete-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        tr:hover .delete-btn {
+            opacity: 1;
+        }
+    </style>
 </head>
 
-<body class="antialiased min-h-screen flex flex-col">
+<body class="antialiased min-h-screen flex flex-col bg-[#0a0a0a]">
 
-    <!-- Login Overlay -->
-    <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
-        <div class="minimal-card p-8 w-full max-w-sm flex flex-col gap-5 anim-fade-in shadow-2xl border border-[#333]">
-            <div class="text-center mb-2">
+    <!-- ===== LOGIN OVERLAY ===== -->
+    <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl">
+        <div class="login-glass p-8 w-full max-w-sm flex flex-col gap-5 shadow-2xl">
+            <!-- Brand -->
+            <div class="text-center mb-1">
                 <div
-                    class="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center font-bold text-2xl mx-auto mb-4">
+                    class="w-12 h-12 rounded-2xl bg-white text-black flex items-center justify-center font-extrabold text-xl mx-auto mb-4 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
                     A</div>
-                <h2 class="text-2xl font-bold text-white">Aura Central Command</h2>
+                <h2 class="text-xl font-bold text-white">Aura Command Center</h2>
+                <p class="text-xs text-gray-500 mt-1">Restricted administrative access</p>
             </div>
 
             <div>
-                <label for="username" class="block text-sm font-medium text-gray-400 mb-1">Access ID</label>
-                <input type="text" id="username"
-                    class="w-full p-3 rounded-lg bg-black border border-[#262626] focus:outline-none focus:ring-1 focus:ring-white focus:border-white text-white transition-all shadow-inner">
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Access ID</label>
+                <input type="text" id="username" autocomplete="off"
+                    class="w-full px-4 py-3 rounded-xl bg-[#0c0c0c] border border-[#2a2a2a] focus:outline-none focus:border-white/40 text-white transition-all placeholder-gray-700"
+                    placeholder="admin">
             </div>
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-400 mb-1">Security Key</label>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Security
+                    Key</label>
                 <input type="password" id="password"
-                    class="w-full p-3 rounded-lg bg-black border border-[#262626] focus:outline-none focus:ring-1 focus:ring-white focus:border-white text-white transition-all shadow-inner">
+                    class="w-full px-4 py-3 rounded-xl bg-[#0c0c0c] border border-[#2a2a2a] focus:outline-none focus:border-white/40 text-white transition-all placeholder-gray-700"
+                    placeholder="••••••••••">
             </div>
 
-            <div id="loginError" class="text-red-400 text-sm hidden font-medium flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div id="loginError"
+                class="text-rose-400 text-xs hidden flex items-center gap-1.5 bg-rose-900/20 px-3 py-2 rounded-lg border border-rose-900/30">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>Clearance denied. Hint: admin / password123</span>
             </div>
 
             <button id="loginBtn"
-                class="w-full py-3 bg-white text-black hover:bg-gray-200 rounded-lg font-medium transition-all active:scale-95 mt-2 shadow-[0_0_15px_rgba(255,255,255,0.15)]">Authenticate</button>
-            <a href="index.html" class="text-sm text-center text-gray-500 hover:text-white transition-colors mt-2">←
-                Disconnect to Portal</a>
+                class="w-full py-3 bg-white text-black hover:bg-gray-100 rounded-xl font-semibold transition-all active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.1)] text-sm">
+                Authenticate →
+            </button>
+            <a href="/" class="text-xs text-center text-gray-600 hover:text-gray-400 transition-colors">← Return to
+                Portal</a>
         </div>
     </div>
 
-    <!-- Header -->
-    <header id="adminHeader" class="w-full border-b border-[#262626] bg-[#0c0c0c] hidden">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <!-- ===== HEADER ===== -->
+    <header id="adminHeader"
+        class="w-full border-b border-[#1f1f1f] bg-[#0c0c0c]/95 backdrop-blur-md sticky top-0 z-40 hidden">
+        <div class="max-w-7xl mx-auto px-6 py-3.5 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div
-                    class="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-bold text-lg">
+                    class="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center font-bold text-base">
                     A</div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight text-white leading-none">Aura Central</h1>
-                    <p class="text-xs text-gray-500 mt-0.5" id="lastUpdated">Sync pending...</p>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-base font-bold text-white leading-none">Aura Central</h1>
+                        <span
+                            class="flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-900/20 px-1.5 py-0.5 rounded font-semibold border border-emerald-900/30">
+                            <span class="health-dot green w-1.5 h-1.5"></span>LIVE
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-0.5" id="lastUpdated">Sync pending...</p>
                 </div>
             </div>
-            <div class="flex gap-3">
+
+            <!-- Admin Tabs -->
+            <nav class="hidden md:flex gap-1 bg-[#141414] border border-[#1f1f1f] rounded-xl p-1">
+                <button class="admin-tab active" onclick="switchAdminTab('stats')" id="adminTabStats">📊
+                    Analytics</button>
+                <button class="admin-tab" onclick="switchAdminTab('users')" id="adminTabUsers">👤 Users</button>
+                <button class="admin-tab" onclick="switchAdminTab('log')" id="adminTabLog">📋 Data Log</button>
+            </nav>
+
+            <div class="flex gap-2">
+                <button onclick="fetchAdminData(); fetchAdminVisuals();"
+                    class="px-3 py-1.5 bg-[#1a1a1a] border border-[#262626] text-gray-400 hover:text-white rounded-lg text-xs transition-colors flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                </button>
                 <button onclick="downloadCSV()"
-                    class="px-4 py-2 bg-[#064e3b]/30 border border-emerald-900/50 text-emerald-400 hover:bg-[#064e3b]/60 rounded-lg transition-colors font-medium text-sm flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="px-3 py-1.5 bg-emerald-900/20 border border-emerald-900/40 text-emerald-400 hover:bg-emerald-900/40 rounded-lg text-xs transition-colors flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                        </path>
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    Export Log
+                    Export CSV
                 </button>
-                <button onclick="fetchAdminData()"
-                    class="px-4 py-2 bg-[#1a1a1a] border border-[#333] text-gray-300 hover:bg-[#262626] hover:text-white rounded-lg transition-colors font-medium text-sm p-2 flex items-center justify-center"
-                    title="Refresh">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                        </path>
-                    </svg>
-                </button>
-                <a href="index.html"
-                    class="px-4 py-2 bg-rose-900/30 text-rose-500 border border-rose-900/50 hover:bg-rose-900/50 rounded-lg transition-colors font-medium text-sm hidden sm:block">Disconnect</a>
+                <a href="/"
+                    class="px-3 py-1.5 bg-rose-900/20 border border-rose-900/40 text-rose-400 hover:bg-rose-900/40 rounded-lg text-xs transition-colors hidden sm:flex items-center gap-1.5">Disconnect</a>
             </div>
         </div>
     </header>
 
-    <!-- Dashboard Main -->
-    <main id="dashboard" class="w-full max-w-7xl mx-auto hidden flex-col gap-6 anim-fade-in px-6 py-6 flex-1">
+    <!-- ===== MAIN DASHBOARD ===== -->
+    <main id="dashboard" class="w-full max-w-7xl mx-auto hidden flex-col gap-6 px-6 py-6 flex-1">
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            <div class="minimal-card p-6 flex flex-col justify-between hover:border-[#444] transition-colors">
-                <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Total Packets</h3>
-                <p id="statTotal" class="text-3xl font-bold text-white">0</p>
+        <!-- ===== ANALYTICS TAB ===== -->
+        <div id="panelStats">
+
+            <!-- System Health Row -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                <div class="admin-stat flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] uppercase tracking-widest text-gray-500 font-medium">Total
+                            Queries</span>
+                        <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <p id="statTotal" class="text-3xl font-extrabold text-white">0</p>
+                    <p class="text-[10px] text-gray-600">across all users</p>
+                </div>
+                <div class="admin-stat flex flex-col gap-2" style="border-top: 2px solid #34d399;">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] uppercase tracking-widest text-gray-500 font-medium">Positive</span>
+                        <span class="text-[10px] text-emerald-400 font-semibold" id="posPercent">—%</span>
+                    </div>
+                    <p id="statPositive" class="text-3xl font-extrabold text-emerald-400">0</p>
+                    <div class="w-full bg-[#1a1a1a] rounded-full h-1.5">
+                        <div id="posBar" class="h-1.5 rounded-full bg-emerald-500 transition-all duration-700"
+                            style="width:0%"></div>
+                    </div>
+                </div>
+                <div class="admin-stat flex flex-col gap-2" style="border-top: 2px solid #fb7185;">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] uppercase tracking-widest text-gray-500 font-medium">Negative</span>
+                        <span class="text-[10px] text-rose-400 font-semibold" id="negPercent">—%</span>
+                    </div>
+                    <p id="statNegative" class="text-3xl font-extrabold text-rose-400">0</p>
+                    <div class="w-full bg-[#1a1a1a] rounded-full h-1.5">
+                        <div id="negBar" class="h-1.5 rounded-full bg-rose-500 transition-all duration-700"
+                            style="width:0%"></div>
+                    </div>
+                </div>
+                <div class="admin-stat flex flex-col gap-2" style="border-top: 2px solid #6b7280;">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] uppercase tracking-widest text-gray-500 font-medium">Neutral</span>
+                        <span class="text-[10px] text-gray-400 font-semibold" id="neuPercent">—%</span>
+                    </div>
+                    <p id="statNeutral" class="text-3xl font-extrabold text-gray-300">0</p>
+                    <div class="w-full bg-[#1a1a1a] rounded-full h-1.5">
+                        <div id="neuBar" class="h-1.5 rounded-full bg-gray-500 transition-all duration-700"
+                            style="width:0%"></div>
+                    </div>
+                </div>
             </div>
-            <div
-                class="minimal-card p-6 flex flex-col justify-between border-l-2 border-emerald-500 bg-[#141414] hover:bg-[#1a1a1a] transition-colors">
-                <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Positive Vectors</h3>
-                <p id="statPositive" class="text-3xl font-bold text-emerald-400">0</p>
+
+            <!-- Charts Row -->
+            <div class="grid lg:grid-cols-5 gap-6 mb-6">
+                <!-- Trend Chart (Larger) -->
+                <div class="lg:col-span-3 minimal-card p-6 flex flex-col min-h-[320px]">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Volume Trend Analysis
+                        </h2>
+                        <div class="flex gap-3 text-[10px] font-semibold">
+                            <span class="flex items-center gap-1 text-emerald-400"><span
+                                    class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>Positive</span>
+                            <span class="flex items-center gap-1 text-rose-400"><span
+                                    class="w-2 h-2 rounded-full bg-rose-400 inline-block"></span>Negative</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 w-full relative">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Word Cloud -->
+                <div class="lg:col-span-2 minimal-card p-6 flex flex-col min-h-[320px]">
+                    <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Linguistic Topography
+                    </h2>
+                    <div class="flex-1 bg-[#0c0c0c] rounded-xl border border-[#1f1f1f] relative flex items-center justify-center overflow-hidden"
+                        id="wordCloudContainer">
+                        <canvas id="wordCloudCanvas" class="w-full h-full"></canvas>
+                        <p id="cloudEmpty" class="text-gray-600 text-xs hidden absolute">Insufficient data</p>
+                    </div>
+                </div>
             </div>
-            <div
-                class="minimal-card p-6 flex flex-col justify-between border-l-2 border-rose-500 bg-[#141414] hover:bg-[#1a1a1a] transition-colors">
-                <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Negative Vectors</h3>
-                <p id="statNegative" class="text-3xl font-bold text-rose-400">0</p>
-            </div>
-            <div
-                class="minimal-card p-6 flex flex-col justify-between border-l-2 border-gray-500 bg-[#141414] hover:bg-[#1a1a1a] transition-colors">
-                <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Neutral Baselines</h3>
-                <p id="statNeutral" class="text-3xl font-bold text-gray-300">0</p>
+
+            <!-- System Status Bar -->
+            <div class="minimal-card p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
+                <div class="flex items-center gap-2">
+                    <div class="health-dot green"></div>
+                    <span class="text-xs text-gray-400">FastAPI Backend <span
+                            class="text-emerald-400 font-semibold">Online</span></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="health-dot green"></div>
+                    <span class="text-xs text-gray-400">Firebase Firestore <span
+                            class="text-emerald-400 font-semibold">Connected</span></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="health-dot green"></div>
+                    <span class="text-xs text-gray-400">Gemini AI <span
+                            class="text-emerald-400 font-semibold">Active</span></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="health-dot green"></div>
+                    <span class="text-xs text-gray-400">NLP Engine (spaCy) <span
+                            class="text-emerald-400 font-semibold">Ready</span></span>
+                </div>
+                <div class="ml-auto text-xs text-gray-600">Last sync: <span id="syncTime">—</span></div>
             </div>
         </div>
 
-        <!-- Visualizations Area -->
-        <div class="grid lg:grid-cols-5 gap-6">
-            <!-- Chart.js Trend Line -->
-            <div class="lg:col-span-3 minimal-card p-6 flex flex-col min-h-[300px]">
-                <h2 class="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Volume Trend Analysis</h2>
-                <div class="flex-1 w-full h-full relative">
-                    <canvas id="trendChart"></canvas>
+        <!-- ===== USERS TAB ===== -->
+        <div id="panelUsers" class="hidden">
+            <div class="minimal-card overflow-hidden">
+                <div class="p-5 border-b border-[#1f1f1f] bg-[#0f0f0f] flex items-center justify-between">
+                    <div>
+                        <h2 class="text-sm font-semibold text-white">Registered Users</h2>
+                        <p class="text-xs text-gray-500 mt-0.5">All users with Firebase accounts</p>
+                    </div>
+                    <span
+                        class="text-xs bg-[#1a1a1a] border border-[#262626] text-gray-400 px-3 py-1.5 rounded-lg font-mono"
+                        id="userCountBadge">— accounts</span>
                 </div>
-            </div>
-
-            <!-- Word Cloud -->
-            <div class="lg:col-span-2 minimal-card p-6 flex flex-col min-h-[300px]">
-                <h2 class="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Linguistic Topography</h2>
-                <div class="flex-1 w-full h-full bg-[#0c0c0c] rounded-lg border border-[#262626] relative flex items-center justify-center p-2"
-                    id="wordCloudContainer">
-                    <canvas id="wordCloudCanvas" class="w-full h-full"></canvas>
-                    <p id="cloudEmpty" class="text-gray-600 text-sm hidden absolute">Insufficient Data</p>
+                <div id="usersList" class="p-4 flex flex-col gap-1 min-h-[300px]">
+                    <div class="p-8 text-center text-gray-600 text-sm">Loading users...</div>
                 </div>
             </div>
         </div>
 
-        <!-- Data Table -->
-        <div class="minimal-card overflow-hidden flex flex-col border border-[#262626]">
-            <!-- Table Header & Controls -->
-            <div class="p-4 border-b border-[#262626] flex justify-between items-center bg-[#1a1a1a]">
-                <h2 class="text-sm font-semibold text-white uppercase tracking-wider">Datapath Log</h2>
-
-                <div class="flex items-center gap-4 text-sm">
-                    <label class="text-gray-400">Filter:</label>
-                    <select id="sentimentFilter"
-                        class="bg-[#0c0c0c] border border-[#333] text-white rounded-md px-2 py-1 focus:outline-none focus:border-white">
-                        <option value="All">All Sentiments</option>
-                        <option value="Positive">Positive</option>
-                        <option value="Negative">Negative</option>
-                        <option value="Neutral">Neutral</option>
-                    </select>
+        <!-- ===== DATA LOG TAB ===== -->
+        <div id="panelLog" class="hidden">
+            <div class="minimal-card overflow-hidden">
+                <!-- Controls -->
+                <div
+                    class="p-4 border-b border-[#1f1f1f] bg-[#0f0f0f] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Datapath Log</h2>
+                    <div class="flex items-center gap-3">
+                        <input id="tableSearch" type="text" placeholder="Search text..."
+                            class="bg-[#141414] border border-[#262626] text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#444] w-36 placeholder-gray-600">
+                        <select id="sentimentFilter"
+                            class="bg-[#141414] border border-[#262626] text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#444]">
+                            <option value="All">All Sentiments</option>
+                            <option value="Positive">Positive</option>
+                            <option value="Negative">Negative</option>
+                            <option value="Neutral">Neutral</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Table Body -->
-            <div class="overflow-x-auto min-h-[300px]">
-                <table class="w-full text-left whitespace-nowrap">
-                    <thead>
-                        <tr>
-                            <th class="px-6 py-3 border-b border-[#262626]">ID</th>
-                            <th class="px-6 py-3 border-b border-[#262626] w-1/2">Snippet</th>
-                            <th class="px-6 py-3 border-b border-[#262626]">Class</th>
-                            <th class="px-6 py-3 border-b border-[#262626]">Confidence</th>
-                            <th class="px-6 py-3 border-b border-[#262626]">Timestamp</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminTableBody" class="divide-y divide-[#262626]">
-                        <!-- Populated dynamically via JS -->
-                    </tbody>
-                </table>
-                <div id="tableEmptyState" class="hidden p-12 text-center text-gray-500">
-                    No packets match the current filter.
+                <!-- Table -->
+                <div class="overflow-x-auto min-h-[300px]">
+                    <table class="w-full text-left whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th class="px-5 py-3 border-b border-[#1f1f1f]">#</th>
+                                <th class="px-5 py-3 border-b border-[#1f1f1f] w-1/2">Text Snippet</th>
+                                <th class="px-5 py-3 border-b border-[#1f1f1f]">Sentiment</th>
+                                <th class="px-5 py-3 border-b border-[#1f1f1f]">Confidence</th>
+                                <th class="px-5 py-3 border-b border-[#1f1f1f]">Language</th>
+                                <th class="px-5 py-3 border-b border-[#1f1f1f]">Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody" class="divide-y divide-[#1a1a1a]"></tbody>
+                    </table>
+                    <div id="tableEmptyState" class="hidden p-12 text-center text-gray-600 text-sm">
+                        No entries match the current filter.
+                    </div>
                 </div>
-            </div>
 
-            <!-- Pagination Controls -->
-            <div class="p-4 border-t border-[#262626] bg-[#1a1a1a] flex justify-between items-center">
-                <span class="text-sm text-gray-500" id="pageInfo">Showing 1 to 50 of 0</span>
-                <div class="flex gap-2">
-                    <button id="prevBtn"
-                        class="px-3 py-1 bg-[#262626] text-gray-400 hover:text-white hover:bg-[#333] rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium">Previous</button>
-                    <button id="nextBtn"
-                        class="px-3 py-1 bg-[#262626] text-gray-400 hover:text-white hover:bg-[#333] rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium">Next</button>
+                <!-- Pagination -->
+                <div class="p-4 border-t border-[#1f1f1f] bg-[#0f0f0f] flex justify-between items-center">
+                    <span class="text-xs text-gray-500" id="pageInfo">Showing 0 of 0</span>
+                    <div class="flex gap-2">
+                        <button id="prevBtn"
+                            class="px-3 py-1.5 bg-[#1a1a1a] border border-[#262626] text-gray-400 hover:text-white rounded-lg text-xs transition-colors disabled:opacity-30 disabled:cursor-not-allowed">←
+                            Prev</button>
+                        <button id="nextBtn"
+                            class="px-3 py-1.5 bg-[#1a1a1a] border border-[#262626] text-gray-400 hover:text-white rounded-lg text-xs transition-colors disabled:opacity-30 disabled:cursor-not-allowed">Next
+                            →</button>
+                    </div>
                 </div>
             </div>
         </div>
+
     </main>
 
-    <!-- Admin Footer -->
-    <footer id="adminFooter" class="w-full border-t border-[#262626] bg-[#0c0c0c] mt-auto hidden py-6">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center text-xs text-gray-600">
-            <span>Aura Local Cluster: Online</span>
-            <span>v2.0.0-advanced</span>
+    <!-- Footer -->
+    <footer id="adminFooter" class="w-full border-t border-[#1f1f1f] bg-[#0a0a0a] mt-auto hidden py-4">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center text-xs text-gray-700">
+            <div class="flex items-center gap-2"><span class="health-dot green w-1.5 h-1.5"></span><span>Aura Cluster:
+                    Online</span></div>
+            <span>v2.0.0-advanced · Admin Portal</span>
         </div>
     </footer>
 
-    <!-- App Logic needs to be loaded here if we separated them, otherwise use inline for admin specifics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
     <script type="module" src="/js/adminPortal.js"></script>
 </body>
 

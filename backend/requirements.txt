@@ -8,3 +8,5 @@ spacy
 pandas
 python-multipart
 firebase-admin
+google-generativeai
+python-dotenv

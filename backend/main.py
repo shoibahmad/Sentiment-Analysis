@@ -8,6 +8,7 @@ import os
 from api.analysis_routes import router as analysis_router
 from api.user_routes import router as user_router
 from api.admin_routes import router as admin_router
+from api.ai_routes import router as ai_router
 
 app = FastAPI(title="Aura Advanced API", description="Modular architecture version")
 
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(analysis_router, prefix="/api")
 app.include_router(user_router, prefix="/api")
 app.include_router(admin_router, prefix="/api/admin")
+app.include_router(ai_router, prefix="/api")
 
 # --- Frontend Serving Routes ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

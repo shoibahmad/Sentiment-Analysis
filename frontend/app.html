@@ -305,6 +305,123 @@
             </div>
         </section>
 
+        <!-- ✨ AI Insight Panel — appears after analysis -->
+        <section id="aiInsightSection" class="hidden anim-fade-in">
+            <div class="minimal-card overflow-hidden">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-5 border-b border-[#262626] bg-[#0f0f0f]">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-violet-900/60 to-indigo-900/60 border border-violet-800/40 shadow-[0_0_12px_rgba(139,92,246,0.25)]">
+                            <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-semibold text-white tracking-tight">Gemini AI Insights</h2>
+                            <p class="text-xs text-gray-500">Powered by Google Gemini 2.5 Flash</p>
+                        </div>
+                    </div>
+                    <span
+                        class="text-[10px] font-bold uppercase tracking-widest text-violet-400 bg-violet-900/30 border border-violet-800/40 px-2 py-1 rounded-full animate-pulse">AI</span>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex border-b border-[#262626] bg-[#0c0c0c]">
+                    <button id="tabExplain"
+                        class="ai-tab-btn active px-6 py-3 text-xs font-semibold uppercase tracking-wider text-violet-400 border-b-2 border-violet-500 transition-all"
+                        onclick="switchAiTab('explain')">
+                        🧠 Explanation
+                    </button>
+                    <button id="tabRewrite"
+                        class="ai-tab-btn px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 border-b-2 border-transparent hover:text-white transition-all"
+                        onclick="switchAiTab('rewrite')">
+                        ✍️ Tone Rewriter
+                    </button>
+                </div>
+
+                <!-- Explain Panel -->
+                <div id="aiExplainPanel" class="p-6">
+                    <div id="aiExplainLoading" class="flex items-center gap-3 text-gray-400">
+                        <div class="flex gap-1">
+                            <span class="w-2 h-2 rounded-full bg-violet-400 animate-bounce"
+                                style="animation-delay:0ms"></span>
+                            <span class="w-2 h-2 rounded-full bg-violet-400 animate-bounce"
+                                style="animation-delay:150ms"></span>
+                            <span class="w-2 h-2 rounded-full bg-violet-400 animate-bounce"
+                                style="animation-delay:300ms"></span>
+                        </div>
+                        <span class="text-sm">Gemini is analyzing your result...</span>
+                    </div>
+                    <div id="aiExplainContent" class="hidden">
+                        <div id="aiExplainText" class="text-gray-300 text-sm leading-relaxed space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- Rewrite Panel -->
+                <div id="aiRewritePanel" class="p-6 hidden">
+                    <div id="aiRewriteLoading" class="hidden flex items-center gap-3 text-gray-400 mb-4">
+                        <div class="flex gap-1">
+                            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-bounce"
+                                style="animation-delay:0ms"></span>
+                            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-bounce"
+                                style="animation-delay:150ms"></span>
+                            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-bounce"
+                                style="animation-delay:300ms"></span>
+                        </div>
+                        <span class="text-sm">Rewriting in 3 tones...</span>
+                    </div>
+                    <div id="aiRewriteContent" class="hidden grid gap-4">
+                        <!-- Positive -->
+                        <div class="bg-emerald-950/40 border border-emerald-900/40 rounded-xl p-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">😄 Positive /
+                                    Optimistic</span>
+                                <button onclick="copyRewrite('positive')"
+                                    class="text-xs text-gray-400 hover:text-white bg-[#1a1a1a] hover:bg-[#262626] border border-[#333] px-2 py-1 rounded transition-all">Copy</button>
+                            </div>
+                            <p id="rewritePositive" class="text-gray-200 text-sm leading-relaxed"></p>
+                        </div>
+                        <!-- Neutral -->
+                        <div class="bg-blue-950/30 border border-blue-900/30 rounded-xl p-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold uppercase tracking-widest text-blue-400">😐 Neutral /
+                                    Objective</span>
+                                <button onclick="copyRewrite('neutral')"
+                                    class="text-xs text-gray-400 hover:text-white bg-[#1a1a1a] hover:bg-[#262626] border border-[#333] px-2 py-1 rounded transition-all">Copy</button>
+                            </div>
+                            <p id="rewriteNeutral" class="text-gray-200 text-sm leading-relaxed"></p>
+                        </div>
+                        <!-- Formal -->
+                        <div class="bg-amber-950/30 border border-amber-900/30 rounded-xl p-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold uppercase tracking-widest text-amber-400">👔 Formal /
+                                    Professional</span>
+                                <button onclick="copyRewrite('formal')"
+                                    class="text-xs text-gray-400 hover:text-white bg-[#1a1a1a] hover:bg-[#262626] border border-[#333] px-2 py-1 rounded transition-all">Copy</button>
+                            </div>
+                            <p id="rewriteFormal" class="text-gray-200 text-sm leading-relaxed"></p>
+                        </div>
+                    </div>
+                    <div id="aiRewriteHint" class="text-sm text-gray-500 text-center py-2">
+                        Generate AI-powered tone variations of your analyzed text.
+                    </div>
+                    <div class="mt-4 flex justify-center">
+                        <button id="loadRewritesBtn" onclick="loadToneRewrites()"
+                            class="px-6 py-2.5 bg-gradient-to-r from-violet-600/20 to-indigo-600/20 border border-violet-700/40 text-violet-300 text-sm font-medium rounded-lg hover:from-violet-600/40 hover:to-indigo-600/40 transition-all flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Generate Tone Rewrites
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- About Section -->
         <section id="about" class="minimal-card p-8 md:p-12 scroll-mt-24">
             <div class="grid md:grid-cols-2 gap-12 items-center">
