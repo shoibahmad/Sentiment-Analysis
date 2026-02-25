@@ -143,7 +143,8 @@ async function triggerAnalysis(isManual = false) {
         if (document.getElementById('bulkResultContent')) document.getElementById('bulkResultContent').classList.add('hidden');
 
         updateSingleResultUI(data);
-        triggerAiInsights(data);  // ✨ Gemini AI insights
+        renderDeepAnalysis(data);   // 🔬 Deep Analysis panels
+        triggerAiInsights(data);    // ✨ Gemini AI insights
         fetchRecentAnalyses();
         fetchPersonalStats();
 
@@ -681,3 +682,171 @@ function copyRewrite(tone) {
 window.switchAiTab = switchAiTab;
 window.loadToneRewrites = loadToneRewrites;
 window.copyRewrite = copyRewrite;
+
+
+// ============================================================
+// 🔬 DEEP ANALYSIS — renders Sarcasm, Toxicity, Sentences, Keywords
+// ============================================================
+
+function renderDeepAnalysis(data) {
+    const section = document.getElementById('deepAnalysisSection');
+    if (!section) return;
+    section.classList.remove('hidden');
+    section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    renderSarcasmMeter(data.sarcasm);
+    renderToxicityShield(data.toxicity);
+    renderSentenceBreakdown(data.sentence_breakdown);
+    renderKeywordMap(data.keyword_map);
+}
+
+// ── Sarcasm Meter
+function renderSarcasmMeter(sarcasm) {
+    if (!sarcasm) return;
+    const pct = Math.round(sarcasm.score * 100);
+
+    const score = document.getElementById('sarcasmScore');
+    const label = document.getElementById('sarcasmLabel');
+    const badge = document.getElementById('sarcasmBadge');
+    const clues = document.getElementById('sarcasmClues');
+
+    // Replace the bar HTML with a gradient track + needle indicator
+    const barContainer = document.getElementById('sarcasmBar')?.parentElement;
+    if (barContainer) {
+        barContainer.innerHTML = `
+            <div class="relative w-full h-3 rounded-full overflow-hidden bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500 border border-[#262626]">
+                <div class="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_6px_rgba(255,255,255,0.9)] transition-all duration-1000"
+                     id="sarcasmNeedle" style="left: ${pct}%"></div>
+            </div>`;
+    }
+
+    if (score) score.textContent = pct + '%';
+    if (label) label.textContent = sarcasm.label;
+
+    if (badge) {
+        badge.classList.remove('hidden');
+        badge.textContent = sarcasm.label;
+        badge.className = 'ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold border';
+        if (sarcasm.score >= 0.45) {
+            badge.classList.add('bg-amber-900/30', 'text-amber-400', 'border-amber-700/40');
+        } else if (sarcasm.score >= 0.25) {
+            badge.classList.add('bg-yellow-900/30', 'text-yellow-400', 'border-yellow-700/40');
+        } else {
+            badge.classList.add('bg-emerald-900/30', 'text-emerald-400', 'border-emerald-700/40');
+        }
+    }
+
+    if (clues) {
+        if (sarcasm.clues && sarcasm.clues.length > 0) {
+            clues.innerHTML = sarcasm.clues.map(c =>
+                `<div class="flex items-start gap-2">
+                    <span class="text-amber-500 mt-0.5 flex-shrink-0">⚠</span>
+                    <span class="text-gray-400">${c}</span>
+                </div>`
+            ).join('');
+        } else {
+            clues.innerHTML = '<span class="text-xs text-emerald-600">— No sarcasm indicators found</span>';
+        }
+    }
+}
+
+// ── Toxicity Shield
+function renderToxicityShield(toxicity) {
+    if (!toxicity) return;
+    const pct = Math.round(toxicity.score * 100);
+
+    const badge = document.getElementById('toxicityBadge');
+    const icon = document.getElementById('toxicityIcon');
+    const score = document.getElementById('toxicityScore');
+    const bar = document.getElementById('toxicityBar');
+    const words = document.getElementById('toxicityWords');
+
+    const configs = {
+        Safe: { icon: '✅', emoji: '🛡️', badgeCls: 'bg-emerald-900/30 text-emerald-400 border-emerald-700/40', barColor: '#34d399', iconBg: 'bg-emerald-900/30 border-emerald-800/40' },
+        Offensive: { icon: '⚠️', emoji: '⚠️', badgeCls: 'bg-amber-900/30  text-amber-400  border-amber-700/40', barColor: '#fbbf24', iconBg: 'bg-amber-900/30  border-amber-800/40' },
+        Toxic: { icon: '☠️', emoji: '☠️', badgeCls: 'bg-rose-900/30   text-rose-400   border-rose-700/40', barColor: '#fb7185', iconBg: 'bg-rose-900/30   border-rose-800/40' },
+    };
+    const cfg = configs[toxicity.label] || configs.Safe;
+
+    if (badge) { badge.textContent = toxicity.label; badge.className = `ml-auto px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${cfg.badgeCls}`; }
+    if (icon) { icon.textContent = cfg.emoji; icon.className = `w-14 h-14 rounded-2xl flex items-center justify-center text-2xl border flex-shrink-0 ${cfg.iconBg}`; }
+    if (score) score.textContent = pct + '%';
+    if (bar) { bar.style.backgroundColor = cfg.barColor; bar.style.width = '0%'; setTimeout(() => bar.style.width = pct + '%', 50); }
+
+    if (words) {
+        if (toxicity.matched_words && toxicity.matched_words.length > 0) {
+            words.innerHTML = toxicity.matched_words.map(w =>
+                `<span class="bg-rose-900/20 border border-rose-900/40 text-rose-400 px-2 py-0.5 rounded text-xs font-mono">"${w}"</span>`
+            ).join('');
+        } else {
+            words.innerHTML = '<span class="text-xs text-emerald-600">✓ No flagged terms detected</span>';
+        }
+    }
+}
+
+// ── Sentence Breakdown
+function renderSentenceBreakdown(sentences) {
+    const list = document.getElementById('sentenceList');
+    const count = document.getElementById('sentenceCount');
+    if (!list) return;
+
+    if (!sentences || sentences.length === 0) {
+        list.innerHTML = '<span class="text-xs text-gray-700 italic">Text may be too short to split into sentences.</span>';
+        if (count) count.textContent = '0 sentences';
+        return;
+    }
+
+    if (count) count.textContent = `${sentences.length} sentence${sentences.length !== 1 ? 's' : ''}`;
+
+    list.innerHTML = sentences.map((s, i) => {
+        let colorCls, dotColor, badgeText;
+        if (s.sentiment === 'Positive') { colorCls = 'border-l-emerald-500 bg-emerald-900/10'; dotColor = 'bg-emerald-400'; badgeText = '+ ' + Math.round(s.score * 100) + '%'; }
+        else if (s.sentiment === 'Negative') { colorCls = 'border-l-rose-500 bg-rose-900/10'; dotColor = 'bg-rose-400'; badgeText = '- ' + Math.round(Math.abs(s.score) * 100) + '%'; }
+        else { colorCls = 'border-l-gray-600 bg-[#1a1a1a]'; dotColor = 'bg-gray-500'; badgeText = '~ 0%'; }
+
+        return `<div class="flex items-start gap-2.5 border-l-2 pl-3 py-1 ${colorCls} rounded-r-lg">
+            <span class="text-[10px] font-mono text-gray-600 mt-0.5 flex-shrink-0 w-4">${i + 1}</span>
+            <p class="text-xs text-gray-300 leading-relaxed flex-1">${s.text}</p>
+            <span class="flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/30 ${s.sentiment === 'Positive' ? 'text-emerald-400' : s.sentiment === 'Negative' ? 'text-rose-400' : 'text-gray-500'}">${badgeText}</span>
+        </div>`;
+    }).join('');
+}
+
+// ── Keyword Sentiment Map
+function renderKeywordMap(keywords) {
+    const container = document.getElementById('keywordMap');
+    if (!container) return;
+
+    if (!keywords || keywords.length === 0) {
+        container.innerHTML = '<span class="text-xs text-gray-700 italic">No sentiment-bearing keywords found.</span>';
+        return;
+    }
+
+    const maxAbs = Math.max(...keywords.map(k => Math.abs(k.score)), 0.01);
+
+    container.innerHTML = keywords.map(k => {
+        const isPos = k.color === 'positive';
+        const isNeg = k.color === 'negative';
+        const sign = isPos ? '+' : (isNeg ? '−' : '~');
+
+        let bgClass, dotColor;
+        if (isPos) {
+            bgClass = 'bg-emerald-900/20 border-emerald-700/40 text-emerald-300';
+            dotColor = '#34d399';
+        } else if (isNeg) {
+            bgClass = 'bg-rose-900/20 border-rose-700/40 text-rose-300';
+            dotColor = '#fb7185';
+        } else {
+            bgClass = 'bg-[#1f1f1f] border-[#333] text-gray-400';
+            dotColor = '#6b7280';
+        }
+
+        const scorePct = Math.round(Math.abs(k.score) * 100);
+
+        return `<div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium cursor-default ${bgClass} transition-all hover:scale-105">
+            <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${dotColor};box-shadow:0 0 5px ${dotColor}70"></span>
+            ${k.word}
+            ${scorePct > 0 ? `<span class="text-[9px] opacity-50">${sign}${scorePct}%</span>` : ''}
+        </div>`;
+    }).join('');
+}
