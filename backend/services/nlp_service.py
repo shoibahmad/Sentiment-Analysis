@@ -9,6 +9,8 @@ if os.path.isdir(nltk_data_dir) and nltk_data_dir not in nltk.data.path:
 
 from textblob import TextBlob
 from nrclex import NRCLex
+import pydantic
+import textstat
 import re
 
 # Initialize SpaCy gracefully to avoid DLL load errors on Windows
@@ -219,6 +221,83 @@ def keyword_sentiment_map(text: str, nrc_emotions: dict = None) -> list:
     return result
 
 
+# ── Feature 5: Readability & Cognitive Load
+def calculate_readability(text: str) -> dict:
+    """
+    Returns grade level and an estimated reading time/complexity.
+    """
+    try:
+        grade = textstat.text_standard(text)
+        ease = textstat.flesch_reading_ease(text)
+        
+        if ease >= 80:
+            complexity = "Very Easy (Conversational)"
+        elif ease >= 60:
+            complexity = "Standard (Easily Digestible)"
+        elif ease >= 30:
+            complexity = "Difficult (Academic/Professional)"
+        else:
+            complexity = "Very Difficult (Highly Technical)"
+            
+        # Estimate reading time (avg adult reads 238 words per minute)
+        word_count = textstat.lexicon_count(text, removepunct=True)
+        reading_time_sec = max(1, round((word_count / 238) * 60))
+        time_str = f"{reading_time_sec} sec" if reading_time_sec < 60 else f"{round(reading_time_sec/60, 1)} min"
+
+        return {
+            "grade_level": grade,
+            "complexity": complexity,
+            "reading_time": time_str
+        }
+    except Exception:
+        return {"grade_level": "Unknown", "complexity": "Standard", "reading_time": "< 1 sec"}
+
+# ── Feature 6: Formality Analysis
+def analyze_formality(text: str) -> dict:
+    """
+    Estimates if text is Formal, Casual, or Slang.
+    """
+    lower_text = text.lower()
+    words = set(re.findall(r'\b\w+\b', lower_text))
+    
+    casual_markers = {"gonna", "wanna", "kinda", "sorta", "dunno", "lemme", "yall", "im", "dont", "cant", "wont"}
+    slang_markers = {"lol", "lmao", "fr", "ngl", "bruh", "tbh", "smh", "stfu", "wtf", "omg", "af", "lit"}
+    formal_markers = {"furthermore", "therefore", "moreover", "accordingly", "nevertheless", "thus", "consequently", "regarding", "sincerely"}
+    
+    casual_count = len(words & casual_markers)
+    slang_count = len(words & slang_markers)
+    formal_count = len(words & formal_markers)
+    
+    # Heuristic scoring
+    if slang_count > 0 or casual_count >= 2:
+        return {"score": 0.2, "label": "Casual / Slang"}
+    elif formal_count > 0 or textstat.flesch_reading_ease(text) < 50:
+        return {"score": 0.9, "label": "Highly Formal"}
+    else:
+        return {"score": 0.5, "label": "Standard Content"}
+
+# ── Feature 7: Semantic Intent
+def detect_intent(text: str, polarity: float) -> dict:
+    """
+    Estimates the primary intent of the user.
+    """
+    lower_text = text.lower()
+    
+    if "?" in text or any(lower_text.startswith(w) for w in ["how", "what", "why", "where", "when", "can", "will", "is", "are", "do", "does"]):
+        return {"label": "Questioning / Inquiry", "color": "blue"}
+        
+    if polarity < -0.3 and any(w in lower_text for w in ["hate", "horrible", "awful", "terrible", "worst", "fix", "issue", "bug", "broken", "sucks"]):
+        return {"label": "Complaining / Frustration", "color": "red"}
+        
+    if polarity > 0.4 and any(w in lower_text for w in ["love", "amazing", "great", "excellent", "best", "thanks", "thank you", "appreciate"]):
+        return {"label": "Praising / Appreciation", "color": "green"}
+        
+    verbs_start = any(lower_text.startswith(w) for w in ["please", "do", "make", "take", "get", "bring", "tell", "give"])
+    if verbs_start:
+        return {"label": "Directing / Commanding", "color": "yellow"}
+        
+    return {"label": "Informational / Stating", "color": "gray"}
+
 # ── Main analysis function
 def perform_advanced_analysis(text: str):
     result = {
@@ -311,10 +390,16 @@ def perform_advanced_analysis(text: str):
         filtered_aspects = {k: v for k, v in aspects.items() if v != "Neutral"}
         result["aspects"] = dict(list(filtered_aspects.items())[:5])
 
-    # ── 4 New Features
+    # ── 8 Features
     result["sarcasm"]            = detect_sarcasm(text, polarity, result["emotions"])
     result["toxicity"]           = detect_toxicity(text)
     result["sentence_breakdown"] = sentence_breakdown(text)
     result["keyword_map"]        = keyword_sentiment_map(text)
+    
+    # New features
+    result["subjectivity"]       = round(blob.sentiment.subjectivity, 2)
+    result["readability"]        = calculate_readability(text)
+    result["formality"]          = analyze_formality(text)
+    result["intent"]             = detect_intent(text, polarity)
 
     return result

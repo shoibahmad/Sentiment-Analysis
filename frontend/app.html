@@ -170,6 +170,77 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Feature 5-8: Linguistic DNA -->
+                                <div class="w-full text-left border-t border-[#262626] pt-6 mt-6">
+                                    <h4
+                                        class="text-xs text-emerald-500 uppercase tracking-widest mb-4 font-bold flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
+                                            </path>
+                                        </svg>
+                                        Linguistic DNA
+                                    </h4>
+
+                                    <div class="grid grid-cols-2 gap-4">
+
+                                        <!-- Subjectivity -->
+                                        <div class="bg-[#141414] border border-[#262626] p-4 rounded-lg">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <span class="text-xs text-gray-400 font-medium">Fact vs Opinion</span>
+                                                <span id="subjectivityLabel"
+                                                    class="text-xs font-bold text-white bg-[#262626] px-2 py-0.5 rounded">Mixed</span>
+                                            </div>
+                                            <div class="w-full bg-[#262626] rounded-full h-1.5 mb-1 mt-3">
+                                                <div id="subjectivityBar" class="bg-blue-400 h-1.5 rounded-full"
+                                                    style="width: 50%"></div>
+                                            </div>
+                                            <div class="flex justify-between text-[10px] text-gray-500 uppercase">
+                                                <span>Objective</span>
+                                                <span>Subjective</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Formality & Intent -->
+                                        <div class="flex flex-col gap-3">
+                                            <!-- Formality -->
+                                            <div
+                                                class="bg-[#141414] border border-[#262626] px-4 py-3 rounded-lg flex justify-between items-center">
+                                                <span class="text-xs text-gray-400 font-medium">Register</span>
+                                                <span id="formalityLabel"
+                                                    class="text-xs font-bold text-indigo-400">Standard</span>
+                                            </div>
+                                            <!-- Intent -->
+                                            <div
+                                                class="bg-[#141414] border border-[#262626] px-4 py-3 rounded-lg flex justify-between items-center">
+                                                <span class="text-xs text-gray-400 font-medium">Semantic Intent</span>
+                                                <span id="intentLabel"
+                                                    class="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-800 border border-gray-600">Stating</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Readability -->
+                                        <div
+                                            class="col-span-2 bg-[#141414] border border-[#262626] p-4 rounded-lg flex justify-between items-center">
+                                            <div>
+                                                <span class="text-xs text-gray-400 font-medium block mb-1">Complexity &
+                                                    Readability</span>
+                                                <span id="readabilityGrade"
+                                                    class="text-sm font-bold text-white flex items-center gap-2">
+                                                    10th Grade Level
+                                                </span>
+                                            </div>
+                                            <div class="text-right">
+                                                <span class="text-xs text-gray-400 font-medium block mb-1">Est. Reading
+                                                    Time</span>
+                                                <span id="readingTime" class="text-sm font-bold text-gray-300">14
+                                                    sec</span>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Bulk Result Content -->

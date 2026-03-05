@@ -215,6 +215,57 @@ function updateSingleResultUI(data) {
             }
         }
     }
+
+    // Linguistic DNA: Subjectivity
+    if (data.subjectivity !== undefined) {
+        const subBar = document.getElementById("subjectivityBar");
+        const subLabel = document.getElementById("subjectivityLabel");
+        const subPercent = Math.round(data.subjectivity * 100);
+
+        subBar.style.width = `${subPercent}%`;
+        if (subPercent < 33) {
+            subBar.className = "bg-blue-400 h-1.5 rounded-full transition-all duration-1000";
+            subLabel.textContent = "Objective";
+            subLabel.className = "text-xs font-bold text-blue-400 bg-blue-900/30 px-2 py-0.5 rounded";
+        } else if (subPercent > 66) {
+            subBar.className = "bg-purple-400 h-1.5 rounded-full transition-all duration-1000";
+            subLabel.textContent = "Subjective";
+            subLabel.className = "text-xs font-bold text-purple-400 bg-purple-900/30 px-2 py-0.5 rounded";
+        } else {
+            subBar.className = "bg-indigo-400 h-1.5 rounded-full transition-all duration-1000";
+            subLabel.textContent = "Mixed";
+            subLabel.className = "text-xs font-bold text-indigo-400 bg-indigo-900/30 px-2 py-0.5 rounded";
+        }
+    }
+
+    // Linguistic DNA: Formality
+    if (data.formality) {
+        const formLabel = document.getElementById("formalityLabel");
+        formLabel.textContent = data.formality.label;
+        if (data.formality.score > 0.7) formLabel.className = "text-xs font-bold text-blue-400";
+        else if (data.formality.score < 0.4) formLabel.className = "text-xs font-bold text-orange-400";
+        else formLabel.className = "text-xs font-bold text-gray-300";
+    }
+
+    // Linguistic DNA: Intent
+    if (data.intent) {
+        const intentLabel = document.getElementById("intentLabel");
+        intentLabel.textContent = data.intent.label;
+
+        let colors = "bg-gray-800 border-gray-600 text-gray-300";
+        if (data.intent.color === "blue") colors = "bg-blue-900/30 border-blue-700/50 text-blue-400";
+        if (data.intent.color === "red") colors = "bg-red-900/30 border-red-700/50 text-red-400";
+        if (data.intent.color === "green") colors = "bg-emerald-900/30 border-emerald-700/50 text-emerald-400";
+        if (data.intent.color === "yellow") colors = "bg-yellow-900/30 border-yellow-700/50 text-yellow-400";
+
+        intentLabel.className = `text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full border ${colors}`;
+    }
+
+    // Linguistic DNA: Readability
+    if (data.readability) {
+        document.getElementById("readabilityGrade").textContent = data.readability.grade_level;
+        document.getElementById("readingTime").textContent = data.readability.reading_time;
+    }
 }
 
 
