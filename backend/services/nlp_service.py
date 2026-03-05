@@ -67,7 +67,8 @@ def detect_sarcasm(text: str, polarity: float, emotions: dict) -> dict:
     matched_phrases = [p for p in SARCASM_PHRASES if p in lower]
     if matched_phrases:
         score += 0.25 * min(len(matched_phrases), 2)
-        clues.append(f"Sarcasm phrases detected: {', '.join(f'\"{p}\"' for p in matched_phrases[:2])}")
+        quoted = ', '.join('"' + p + '"' for p in matched_phrases[:2])
+        clues.append(f"Sarcasm phrases detected: {quoted}")
 
     # High positive polarity but negative emotions
     neg_emotions = emotions.get("anger", 0) + emotions.get("disgust", 0) + emotions.get("fear", 0)
