@@ -11,3 +11,5 @@ services:
         sync: false
       - key: PYTHON_VERSION
         value: "3.11.6"
+      - key: NLTK_DATA
+        value: "/opt/render/nltk_data"

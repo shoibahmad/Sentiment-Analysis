@@ -1,3 +1,11 @@
+import os
+import nltk
+
+# Ensure NLTK can find its data on Render (downloaded to /opt/render/nltk_data during build)
+nltk_data_dir = '/opt/render/nltk_data'
+if os.path.isdir(nltk_data_dir) and nltk_data_dir not in nltk.data.path:
+    nltk.data.path.insert(0, nltk_data_dir)
+
 from textblob import TextBlob
 from nrclex import NRCLex
 import re
