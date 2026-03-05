@@ -42,23 +42,7 @@
 <body class="antialiased min-h-screen flex flex-col items-center overflow-x-hidden relative">
     <div class="hero-glow"></div>
 
-    <header class="w-full border-b border-[#262626] bg-black/80 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="#" class="flex items-center gap-3 group">
-                <div
-                    class="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-bold text-lg group-hover:bg-gray-200 transition-colors shadow-[0_0_10px_rgba(255,255,255,0.2)]">
-                    A</div>
-                <h1 class="text-xl font-bold tracking-tight text-white group-hover:text-gray-300 transition-colors">Aura
-                </h1>
-            </a>
-            <div class="flex items-center gap-4">
-                <a href="auth.html" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Sign
-                    In</a>
-                <a href="auth.html"
-                    class="px-5 py-2 btn-gradient text-white text-sm font-medium rounded-full shadow-lg">Get Started</a>
-            </div>
-        </div>
-    </header>
+    <!-- Header is injected by shared header.js -->
 
     <main
         class="w-full max-w-6xl px-6 py-12 flex-1 flex flex-col justify-center items-center text-center relative z-10 z-10">
@@ -149,6 +133,8 @@
                     Agent</span></p>
         </div>
     </footer>
+
+    <script type="module" src="/js/header.js"></script>
 </body>
 
 </html>

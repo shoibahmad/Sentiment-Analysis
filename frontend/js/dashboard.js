@@ -1,7 +1,8 @@
 import { auth } from './firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { showToast, showConfirmModal, queueToast, checkPendingToast } from './toast.js';
 
-const API_BASE = "http://localhost:8000/api";
+const API_BASE = "/api";
 let currentUser = null;
 let historyLineChart = null;
 let sentimentPieChart = null;
@@ -22,12 +23,29 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUser = user;
         updateProfileUI(user);
         await loadDashboardData();
+        checkPendingToast();  // Show any queued toast from sign-in page
     });
 
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) logoutBtn.addEventListener('click', async () => {
-        try { await signOut(auth); } catch (e) { console.error(e); }
-    });
+    const logoutHandler = async () => {
+        const confirmed = await showConfirmModal({
+            title: 'Sign Out?',
+            message: 'Are you sure you want to sign out of Aura? You\'ll need to log in again to access your dashboard.',
+            confirmText: 'Sign Out',
+            cancelText: 'Stay',
+            icon: '🚪'
+        });
+        if (!confirmed) return;
+        try {
+            queueToast('Signed out successfully', 'info', 3000);
+            await signOut(auth);
+        } catch (e) {
+            console.error(e);
+            showToast('Failed to sign out', 'error');
+        }
+    };
+
+    document.getElementById('logoutBtn')?.addEventListener('click', logoutHandler);
+    document.getElementById('drawerLogoutBtn')?.addEventListener('click', logoutHandler);
 
     // History filters
     document.getElementById('historyFilter')?.addEventListener('change', (e) => {
@@ -52,26 +70,62 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateProfileUI(user) {
     const name = user.displayName || 'User';
     const first = name.split(' ')[0];
+    const initial = name.charAt(0).toUpperCase();
     document.getElementById('headerName').textContent = name;
     document.getElementById('welcomeName').textContent = first;
     document.getElementById('headerEmail').textContent = user.email || 'No email';
-    document.getElementById('headerAvatar').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('headerAvatar').textContent = initial;
     document.getElementById('welcomeSubtitle').textContent =
         `Welcome back, ${first}. Here's a summary of your sentiment journey.`;
+    // Sync drawer
+    const da = document.getElementById('drawerAvatar');
+    const dn = document.getElementById('drawerName');
+    const de = document.getElementById('drawerEmail');
+    if (da) da.textContent = initial;
+    if (dn) dn.textContent = name;
+    if (de) de.textContent = user.email || 'No email';
 }
+
+// ============================================================
+// Mobile Drawer
+// ============================================================
+window.toggleMobileDrawer = function () {
+    // Only open on mobile/tablet (< md breakpoint = 768px)
+    const overlay = document.getElementById('drawerOverlay');
+    const panel = document.getElementById('drawerPanel');
+    if (!overlay || !panel) return;
+    const isOpen = panel.classList.contains('open');
+    if (isOpen) {
+        panel.classList.remove('open');
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+    } else {
+        panel.classList.add('open');
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+};
 
 // ============================================================
 // Tab Switching
 // ============================================================
+function capTabName(t) {
+    // 'ai' → 'AI', 'overview' → 'Overview', 'history' → 'History'
+    return t === 'ai' ? 'AI' : t.charAt(0).toUpperCase() + t.slice(1);
+}
 window.switchDashTab = function (tab) {
     ['overview', 'history', 'ai'].forEach(t => {
-        document.getElementById(`panel${t.charAt(0).toUpperCase() + t.slice(1)}`)?.classList.add('hidden');
-        document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`)?.classList.remove('active');
+        document.getElementById(`panel${capTabName(t)}`)?.classList.add('hidden');
+        document.getElementById(`tab${capTabName(t)}`)?.classList.remove('active');
+        // Sync drawer tabs
+        document.getElementById(`drawerTab${capTabName(t)}`)?.classList.remove('active');
     });
-    document.getElementById(`panel${tab.charAt(0).toUpperCase() + tab.slice(1)}`)?.classList.remove('hidden');
-    document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`)?.classList.add('active');
+    document.getElementById(`panel${capTabName(tab)}`)?.classList.remove('hidden');
+    document.getElementById(`tab${capTabName(tab)}`)?.classList.add('active');
+    document.getElementById(`drawerTab${capTabName(tab)}`)?.classList.add('active');
 
     if (tab === 'history' && cachedData) renderHistoryTab();
+    if (tab === 'ai' && cachedData) updateAIProfileStats(cachedData);
 };
 
 // ============================================================
@@ -93,6 +147,7 @@ async function loadDashboardData() {
         renderWordCloud(data.word_frequencies);
         renderMiniHistory(data);
         updateMoodRing(data);
+        updateAIProfileStats(data);
 
     } catch (err) {
         console.error("Failed to load dashboard:", err);
@@ -404,7 +459,147 @@ function renderHistoryTab() {
 }
 
 // ============================================================
-// AI Profile Tab
+// AI Profile — Stats & Communication Style Cards
+// ============================================================
+function updateAIProfileStats(data) {
+    if (!data || !data.summary) return;
+    const { total_queries: total, total_positive: pos, total_negative: neg, total_neutral: neu } = data.summary;
+
+    // Stat cards
+    const posRate = total > 0 ? Math.round((pos / total) * 100) : 0;
+    const negRate = total > 0 ? Math.round((neg / total) * 100) : 0;
+    const neuRate = total > 0 ? Math.round((neu / total) * 100) : 0;
+
+    document.getElementById('aiStatTotal').textContent = total;
+    document.getElementById('aiStatPosRate').textContent = posRate + '%';
+    document.getElementById('aiStatNegRate').textContent = negRate + '%';
+
+    // Dominant mood
+    const moodEl = document.getElementById('aiStatMood');
+    const moodSubEl = document.getElementById('aiStatMoodSub');
+    if (total === 0) {
+        moodEl.textContent = '—';
+        moodSubEl.textContent = 'no data yet';
+    } else if (pos >= neg && pos >= neu) {
+        moodEl.textContent = '😊';
+        moodSubEl.textContent = 'Optimistic';
+    } else if (neg >= pos && neg >= neu) {
+        moodEl.textContent = '😔';
+        moodSubEl.textContent = 'Critical';
+    } else {
+        moodEl.textContent = '😐';
+        moodSubEl.textContent = 'Balanced';
+    }
+
+    // ── Personality Archetype (always show if total > 0) ──
+    const archetypeContainer = document.getElementById('aiPersonalityArchetype');
+    if (archetypeContainer && total > 0) {
+        let archetype = { emoji: '🔍', title: 'The Observer', desc: '' };
+        if (posRate >= 70) archetype = { emoji: '☀️', title: 'The Optimist', desc: 'Your writing radiates positivity. You naturally gravitate toward uplifting, encouraging, and hopeful expressions. You see the bright side in most situations and your words reflect an inherently optimistic worldview.' };
+        else if (posRate >= 50 && negRate < 25) archetype = { emoji: '🌱', title: 'The Encourager', desc: 'Your tone is warm and supportive, with a tendency toward constructive, growth-oriented language. You balance positivity with genuine observations, making your communication feel authentic and grounded.' };
+        else if (negRate >= 60) archetype = { emoji: '⚡', title: 'The Challenger', desc: 'You express yourself with conviction and emotional intensity. Your writing doesn\'t shy away from criticism or strong opinions. This directness signals high engagement and a desire for honest discourse.' };
+        else if (negRate >= 40) archetype = { emoji: '🔥', title: 'The Passionate Critic', desc: 'Your writing carries significant emotional weight, often channeling frustration or dissatisfaction into articulate critique. You care deeply about the subjects you analyze and it shows.' };
+        else if (neuRate >= 50) archetype = { emoji: '⚖️', title: 'The Analyst', desc: 'You favor measured, objective language. Your writing is fact-driven and emotionally restrained, suggesting a systematic and logical approach to communication. You process information before passing judgment.' };
+        else archetype = { emoji: '🎭', title: 'The Versatile Communicator', desc: 'You express a healthy mix of positive, negative, and neutral sentiments, demonstrating emotional versatility. Your writing adapts to context, showing range and nuance in how you process information.' };
+
+        archetypeContainer.innerHTML = `
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-14 h-14 rounded-2xl bg-violet-900/30 border border-violet-800/30 flex items-center justify-center text-2xl flex-shrink-0 shadow-[0_0_20px_rgba(139,92,246,0.15)]">${archetype.emoji}</div>
+                <div>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider">Your Personality Archetype</p>
+                    <p class="text-xl font-bold text-white">${archetype.title}</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed">${archetype.desc}</p>
+        `;
+    }
+
+    // ── Sentiment Distribution Bar (always show if total > 0) ──
+    const distBar = document.getElementById('aiSentimentDistBar');
+    if (distBar && total > 0) {
+        distBar.innerHTML = `
+            <p class="text-[10px] text-gray-500 uppercase tracking-wider mb-3 font-semibold">Sentiment Distribution</p>
+            <div class="flex w-full h-3 rounded-full overflow-hidden mb-3 bg-[#1a1a1a]">
+                <div style="width:${posRate}%;background:#34d399;" class="transition-all duration-700"></div>
+                <div style="width:${neuRate}%;background:#6b7280;" class="transition-all duration-700"></div>
+                <div style="width:${negRate}%;background:#fb7185;" class="transition-all duration-700"></div>
+            </div>
+            <div class="flex justify-between text-xs">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> <span class="text-gray-400">Positive ${posRate}%</span></span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-gray-500 inline-block"></span> <span class="text-gray-400">Neutral ${neuRate}%</span></span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-400 inline-block"></span> <span class="text-gray-400">Negative ${negRate}%</span></span>
+            </div>
+        `;
+    }
+
+    // ── Writing Insights (always show if total > 0) ──
+    const insightsEl = document.getElementById('aiWritingInsights');
+    if (insightsEl && total > 0) {
+        const insights = [];
+        // Volume insight
+        if (total >= 20) insights.push({ icon: '🏆', text: `Power User — You've analyzed <strong class="text-white">${total} texts</strong>, putting you in the heavy-usage tier. Your data gives highly reliable personality insights.` });
+        else if (total >= 10) insights.push({ icon: '📈', text: `Active Explorer — With <strong class="text-white">${total} analyses</strong>, you're building a solid sentiment profile. Keep going for even deeper insights.` });
+        else if (total >= 3) insights.push({ icon: '🌱', text: `Getting Started — You've run <strong class="text-white">${total} analyses</strong> so far. More analyses will unlock richer personality insights and more accurate profiling.` });
+        else insights.push({ icon: '👋', text: `Welcome — You've analyzed <strong class="text-white">${total} text${total > 1 ? 's' : ''}</strong>. Run a few more to unlock your full personality profile!` });
+
+        // Sentiment tendency insight
+        if (pos > neg && pos > neu) insights.push({ icon: '😊', text: `Your dominant sentiment is <strong class="text-emerald-400">Positive</strong> at ${posRate}%. You tend to analyze texts that reflect or generate optimistic outcomes.` });
+        else if (neg > pos && neg > neu) insights.push({ icon: '🔴', text: `Your dominant sentiment is <strong class="text-rose-400">Negative</strong> at ${negRate}%. You may be analyzing critical content or your text subjects carry heavier emotional weight.` });
+        else if (neu > pos && neu > neg) insights.push({ icon: '⚖️', text: `Your dominant sentiment is <strong class="text-gray-300">Neutral</strong> at ${neuRate}%. Your analyzed content tends toward factual, objective, or balanced language.` });
+        else insights.push({ icon: '🎭', text: `Your sentiments are <strong class="text-violet-400">evenly distributed</strong> across positive, negative, and neutral — reflecting a well-rounded analytical approach.` });
+
+        // Ratio insight
+        if (pos > 0 && neg > 0) {
+            const ratio = (pos / neg).toFixed(1);
+            insights.push({ icon: '📊', text: `Your positive-to-negative ratio is <strong class="text-white">${ratio}:1</strong>. ${ratio >= 3 ? 'This is an exceptionally positive ratio.' : ratio >= 2 ? 'This reflects a healthy positivity bias.' : ratio >= 1 ? 'Your writing is fairly balanced between positive and negative.' : 'Your texts lean toward critical or negative analysis.'}` });
+        }
+
+        // Vocabulary insight
+        const wordFreq = data.word_frequencies || {};
+        const totalWords = Object.values(wordFreq).reduce((a, b) => a + b, 0);
+        const uniqueWords = Object.keys(wordFreq).length;
+        if (uniqueWords > 0) {
+            const topWords = Object.entries(wordFreq).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            insights.push({ icon: '📝', text: `Your vocabulary spans <strong class="text-white">${uniqueWords} unique words</strong> across ${totalWords} total words. Your most frequent terms are: ${topWords.map(([w]) => `<span class="text-violet-400">${w}</span>`).join(', ')}.` });
+        }
+
+        insightsEl.innerHTML = insights.map(i =>
+            `<div class="flex items-start gap-3 py-3 border-b border-[#1a1a1a] last:border-0">
+                <div class="w-8 h-8 rounded-lg bg-[#141414] border border-[#262626] flex items-center justify-center text-sm flex-shrink-0 mt-0.5">${i.icon}</div>
+                <p class="text-sm text-gray-400 leading-relaxed">${i.text}</p>
+            </div>`
+        ).join('');
+    }
+
+    // Communication style cards
+    if (total >= 1) {
+        const exprEl = document.getElementById('aiExpressionStyle');
+        if (exprEl) {
+            if (total < 3) exprEl.textContent = `Early data: ${pos} positive, ${neg} negative, ${neu} neutral out of ${total} total. Analyze more texts to discover your full expression style.`;
+            else if (posRate > 60) exprEl.textContent = 'You tend to express yourself with an upbeat, positive tone. Your writing leans toward encouragement and optimism, often highlighting the best in what you analyze.';
+            else if (negRate > 40) exprEl.textContent = 'Your writing carries strong emotional weight, often expressing concern, criticism, or frustration with clarity. You don\'t sugarcoat your observations.';
+            else exprEl.textContent = 'You communicate in a balanced way, blending positive and critical perspectives. Your tone is measured and thoughtful, showing nuanced emotional intelligence.';
+        }
+
+        const rangeEl = document.getElementById('aiEmotionalRange');
+        if (rangeEl) {
+            const spread = Math.abs(posRate - negRate);
+            if (total < 3) rangeEl.textContent = `Current spread: ${spread}%. More analyses will provide a more accurate picture of your emotional range.`;
+            else if (spread > 50) rangeEl.textContent = `Wide range (${spread}% spread) — your texts span from strongly positive to very negative, showing rich emotional diversity in what you write and analyze.`;
+            else if (spread > 20) rangeEl.textContent = `Moderate range (${spread}% spread) — you express a variety of sentiments, showing healthy emotional versatility across your analyzed texts.`;
+            else rangeEl.textContent = `Narrow range (${spread}% spread) — your sentiment stays consistent, indicating a stable and even-tempered communication style across analyses.`;
+        }
+
+        const balEl = document.getElementById('aiSentimentBalance');
+        if (balEl) {
+            const ratio = pos > 0 && neg > 0 ? (pos / neg).toFixed(1) : pos > 0 ? '∞' : neg > 0 ? '0' : '—';
+            balEl.textContent = `Positive-to-negative ratio: ${ratio}. You've written ${pos} positive, ${neg} negative, and ${neu} neutral analyses out of ${total} total queries.`;
+        }
+    }
+}
+
+// ============================================================
+// AI Profile — Generate via Gemini
 // ============================================================
 window.generateAIProfile = async function () {
     if (!cachedData || !currentUser) return;

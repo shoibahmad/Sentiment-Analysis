@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -10,7 +11,29 @@ from api.user_routes import router as user_router
 from api.admin_routes import router as admin_router
 from api.ai_routes import router as ai_router
 
-app = FastAPI(title="Aura Advanced API", description="Modular architecture version")
+HOST = "0.0.0.0"
+PORT = int(os.getenv("PORT", 8000))
+BASE_URL = f"http://localhost:{PORT}"
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # ── Startup: print clickable frontend links ──
+    print("\n" + "=" * 58)
+    print("  🔮  AURA — Sentiment Intelligence Platform")
+    print("=" * 58)
+    print(f"\n  🌐  Frontend :  {BASE_URL}/")
+    print(f"  🔐  Auth     :  {BASE_URL}/auth.html")
+    print(f"  🔮  App      :  {BASE_URL}/app.html")
+    print(f"  📊  Dashboard:  {BASE_URL}/dashboard.html")
+    print(f"  🛡️   Admin    :  {BASE_URL}/admin.html")
+    print(f"  ℹ️   About    :  {BASE_URL}/about.html")
+    print(f"\n  📡  API Docs :  {BASE_URL}/docs")
+    print("=" * 58 + "\n")
+    yield
+    # ── Shutdown ──
+    print("\n  👋  Aura server stopped.\n")
+
+app = FastAPI(title="Aura Advanced API", description="Modular architecture version", lifespan=lifespan)
 
 # Setup CORS
 app.add_middleware(
@@ -70,4 +93,4 @@ def serve_dashboard():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host=HOST, port=PORT, reload=True)

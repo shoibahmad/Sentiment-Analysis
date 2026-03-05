@@ -12,49 +12,7 @@
 
 <body class="antialiased min-h-screen flex flex-col items-center">
 
-    <!-- Header -->
-    <header class="w-full border-b border-[#262626] bg-[#0c0c0c]/90 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="#" class="flex items-center gap-3 group">
-                <div
-                    class="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-bold text-lg group-hover:bg-gray-200 transition-colors shadow-[0_0_10px_rgba(255,255,255,0.2)]">
-                    A</div>
-                <h1 class="text-xl font-bold tracking-tight text-white group-hover:text-gray-300 transition-colors">Aura
-                </h1>
-            </a>
-
-            <nav class="hidden md:flex gap-8 items-center">
-                <a href="#analyze"
-                    class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Analyze</a>
-                <a href="#about" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">About</a>
-                <a href="#how-it-works" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">How
-                    it Works</a>
-            </nav>
-
-            <div class="flex items-center gap-4">
-                <div
-                    class="hidden sm:flex items-center gap-2 mr-4 text-gray-300 bg-[#1a1a1a] px-3 py-1.5 rounded-full border border-[#333]">
-                    <span
-                        class="w-6 h-6 rounded-full bg-emerald-900/50 text-emerald-400 flex items-center justify-center text-xs font-bold font-mono">?</span>
-                    <span id="headerUserName" class="text-sm font-medium">Loading...</span>
-                </div>
-                <a href="dashboard.html"
-                    class="px-4 py-2 bg-emerald-900/30 text-emerald-400 border border-emerald-900/50 text-sm font-medium rounded-lg hover:bg-emerald-900/50 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.1)] flex items-center gap-2 hidden sm:flex">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
-                        </path>
-                    </svg>
-                    My Dashboard
-                </a>
-                <a href="admin.html"
-                    class="text-sm font-medium text-gray-400 hover:text-white transition-colors hidden lg:block">Admin</a>
-                <button id="logoutBtn"
-                    class="px-4 py-2 bg-red-900/50 text-red-400 border border-red-900/50 text-sm font-medium rounded-lg hover:bg-red-900/80 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)]">Sign
-                    Out</button>
-            </div>
-        </div>
-    </header>
+    <!-- Header is injected by shared header.js -->
 
     <!-- Main Content -->
     <main class="w-full max-w-6xl px-6 py-12 flex-1 flex flex-col gap-24">
@@ -659,6 +617,7 @@
         </div>
     </footer>
 
+    <script type="module" src="/js/header.js"></script>
     <script type="module" src="/js/userPortal.js"></script>
 </body>
 

@@ -7,6 +7,3 @@ env/
 
 # Firebase Backend Admin SDK (CRITICAL SECRET)
 backend/*-firebase-adminsdk-*.json
-
-# Frontend Config (contains public API key, ignored to prevent GitHub alerts)
-frontend/js/firebaseConfig.js

@@ -1,5 +1,6 @@
 import { API_BASE } from './api.js';
 import { auth, onAuthStateChanged } from './firebaseConfig.js';
+import { showToast, showConfirmModal } from './toast.js';
 
 let currentUser = null;
 let adminChart = null;
@@ -86,10 +87,11 @@ window.downloadCSV = async function () {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        showToast('CSV exported successfully!', 'success');
 
     } catch (err) {
         console.error("CSV export error:", err);
-        alert('Export failed. Please try again.');
+        showToast('Export failed. Please try again.', 'error');
     } finally {
         if (btn) {
             btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Export CSV`;
@@ -99,7 +101,14 @@ window.downloadCSV = async function () {
 };
 
 window.deleteUser = async function (uid) {
-    if (!confirm('Permanently delete this user and all their data? This cannot be undone.')) return;
+    const confirmed = await showConfirmModal({
+        title: 'Delete User?',
+        message: 'Permanently delete this user and all their data? This action cannot be undone.',
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        icon: '⚠️'
+    });
+    if (!confirmed) return;
     try {
         const token = await getToken();
         const res = await fetch(`${API_BASE}/admin/users/${uid}`, {
@@ -107,9 +116,10 @@ window.deleteUser = async function (uid) {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (!res.ok) throw new Error('Delete failed: ' + res.status);
+        showToast('User deleted successfully', 'success');
         fetchUsers();
     } catch (err) {
-        alert('Failed to delete user: ' + err.message);
+        showToast('Failed to delete user: ' + err.message, 'error');
     }
 };
 
@@ -152,8 +162,10 @@ function doLogin() {
 
         window.fetchAdminData();
         window.fetchAdminVisuals();
+        showToast('Admin panel unlocked!', 'success');
     } else {
         if (err) err.classList.remove("hidden");
+        showToast('Invalid credentials', 'error');
     }
 }
 

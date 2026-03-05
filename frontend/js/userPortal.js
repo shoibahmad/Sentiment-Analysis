@@ -1,36 +1,23 @@
 import { API_BASE } from './api.js';
 import { auth, onAuthStateChanged, signOut } from './firebaseConfig.js';
+import { showToast, showConfirmModal, queueToast, checkPendingToast } from './toast.js';
 
 let currentUser = null;
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
-        const headerName = document.getElementById("headerUserName");
-        if (headerName) {
-            const displayName = user.displayName || user.email.split('@')[0];
-            headerName.textContent = displayName;
-            headerName.previousElementSibling.textContent = displayName.charAt(0).toUpperCase();
-        }
 
         // Fetch data only after user is authenticated
         fetchRecentAnalyses();
         fetchPersonalStats();
+        checkPendingToast();  // Show any queued toast from sign-in page
     } else {
         window.location.href = "auth.html";
     }
 });
 
-const logoutBtn = document.getElementById("logoutBtn");
-if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
-        try {
-            await signOut(auth);
-        } catch (error) {
-            console.error("Error signing out: ", error);
-        }
-    });
-}
+// Sign-out is handled by shared header.js
 
 // --- Tab Switching Logic ---
 const tabs = document.querySelectorAll('.tab-btn');
@@ -147,6 +134,7 @@ async function triggerAnalysis(isManual = false) {
         triggerAiInsights(data);    // ✨ Gemini AI insights
         fetchRecentAnalyses();
         fetchPersonalStats();
+        showToast(`Analysis complete — ${data.sentiment} (${Math.round(data.confidence * 100)}%)`, 'success');
 
     } catch (err) {
         if (errorMsg) {
@@ -301,6 +289,7 @@ if (fileInput) {
 
             fetchRecentAnalyses();
             fetchPersonalStats();
+            showToast(`Bulk analysis complete — ${data.processed_count} texts processed`, 'success');
 
         } catch (err) {
             alert(err.message);

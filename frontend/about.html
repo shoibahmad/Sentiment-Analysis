@@ -4,274 +4,744 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Aura - Technical Architecture</title>
+    <title>About Aura - AI Sentiment Intelligence Platform</title>
+    <meta name="description"
+        content="Learn about Aura's architecture, NLP pipeline, AI features, and how every module works together to decode sentiment from text.">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
     <style>
-        .tech-card {
-            background: rgba(20, 20, 20, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #050505;
+            color: #e5e5e5;
+        }
+
+        .section-card {
+            background: rgba(15, 15, 15, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.35s cubic-bezier(.4, 0, .2, 1);
             position: relative;
             overflow: hidden;
         }
 
-        .tech-card::before {
+        .section-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.35s ease;
         }
 
-        .tech-card:hover {
-            border-color: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-            background: rgba(20, 20, 20, 0.8);
+        .section-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-3px);
+            background: rgba(18, 18, 18, 0.9);
         }
 
-        .tech-card:hover::before {
+        .section-card:hover::before {
             opacity: 1;
         }
 
-        .flow-line {
+        .module-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .flow-connector {
             width: 2px;
-            background: linear-gradient(to bottom, #10b981 0%, transparent 100%);
-            height: 48px;
+            height: 40px;
             margin: 0 auto;
-            opacity: 0.5;
+            background: linear-gradient(to bottom, #10b981, transparent);
+            opacity: 0.4;
+        }
+
+        .feature-grid-item {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-grid-item:hover {
+            border-color: #333;
+            transform: translateY(-2px);
+        }
+
+        .stat-bubble {
+            background: linear-gradient(135deg, #111 0%, #0a0a0a 100%);
+            border: 1px solid #1f1f1f;
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .glow-emerald {
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.06);
+        }
+
+        .glow-indigo {
+            box-shadow: 0 0 40px rgba(99, 102, 241, 0.06);
+        }
+
+        .glow-amber {
+            box-shadow: 0 0 40px rgba(245, 158, 11, 0.06);
+        }
+
+        .glow-rose {
+            box-shadow: 0 0 40px rgba(244, 63, 94, 0.06);
+        }
+
+        .toc-link {
+            display: block;
+            padding: 8px 16px;
+            border-left: 2px solid #1a1a1a;
+            color: #737373;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .toc-link:hover {
+            color: #10b981;
+            border-color: #10b981;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.6s ease-out both;
         }
     </style>
 </head>
 
-<body
-    class="bg-[#0a0a0a] text-gray-200 min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+<body class="antialiased min-h-screen flex flex-col">
 
-    <header class="fixed top-0 w-full z-50 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-[#1a1a1a]">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <a href="/"
-                    class="flex items-center justify-center w-8 h-8 rounded bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-[#262626] shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+    <!-- Header -->
+    <!-- Header is injected by shared header.js -->
+
+    <main class="flex-grow pt-12 pb-24 px-6 relative">
+        <!-- Background glows -->
+        <div
+            class="absolute top-20 left-1/4 w-[600px] h-[400px] bg-emerald-500/[0.03] rounded-full blur-[120px] pointer-events-none">
+        </div>
+        <div
+            class="absolute bottom-1/4 right-1/4 w-[500px] h-[350px] bg-indigo-500/[0.03] rounded-full blur-[120px] pointer-events-none">
+        </div>
+
+        <div class="max-w-5xl mx-auto relative z-10">
+
+            <!-- ═══════════════ HERO ═══════════════ -->
+            <div class="text-center mb-20 animate-in">
+                <div
+                    class="inline-flex items-center gap-2 border border-[#1f1f1f] text-gray-500 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider mb-6 bg-[#0a0a0a]">
+                    <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
                     </svg>
-                </a>
-                <span class="text-sm font-semibold tracking-wide text-white"><a href="/">AURA</a></span>
-            </div>
-            <a href="/auth.html"
-                class="text-xs font-medium text-gray-400 hover:text-white transition-colors duration-200 bg-[#1a1a1a] px-3 py-1.5 rounded-md border border-[#262626] hover:border-[#404040]">
-                Access Portal &rarr;
-            </a>
-        </div>
-    </header>
-
-    <main class="flex-grow pt-32 pb-24 px-6 relative">
-        <div
-            class="absolute top-1/4 left-1/4 w-[500px] h-[300px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none">
-        </div>
-        <div
-            class="absolute bottom-1/4 right-1/4 w-[400px] h-[300px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none">
-        </div>
-
-        <div class="max-w-4xl mx-auto relative z-10">
-
-            <div class="text-center mb-16">
+                    COMPREHENSIVE PROJECT DOCUMENTATION
+                </div>
                 <h1
-                    class="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 mb-6 tracking-tight">
-                    The Architecture of Aura</h1>
-                <p class="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
-                    Aura is an advanced Sentiment Engine combining sleek modern web design with powerful open-source
-                    Natural Language Processing libraries, hosted locally and synchronized with Google Cloud
-                    infrastructure.
+                    class="text-4xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-500 mb-6 leading-tight">
+                    Everything About Aura
+                </h1>
+                <p class="text-gray-400 text-lg max-w-3xl mx-auto leading-relaxed">
+                    Aura is a full-stack <strong class="text-gray-300">AI-Powered Sentiment Intelligence
+                        Platform</strong> that combines open-source Natural Language Processing libraries with Google's
+                    Gemini AI to decode the emotional frequency, entities, toxicity, sarcasm, and granular sentiment of
+                    any text — all running locally with cloud synchronization.
                 </p>
             </div>
 
-            <!-- Architecture Diagram Visualization -->
-            <div class="flex justify-center mb-16 select-none">
-                <div class="flex flex-col items-center w-full max-w-sm">
-                    <!-- Presentation Layer -->
-                    <div class="w-full bg-[#1a1a1a] border border-[#333] rounded-xl p-4 text-center shadow-lg">
-                        <div class="text-xs font-medium text-gray-500 uppercase tracking-widest mb-1">Presentation Layer
-                        </div>
-                        <div class="text-white font-semibold">Vanilla JS + Tailwind CSS</div>
-                    </div>
-
-                    <div class="flow-line"></div>
-
-                    <!-- API Layer -->
-                    <div
-                        class="w-full bg-indigo-900/30 border border-indigo-500/30 rounded-xl p-4 text-center shadow-lg relative">
-                        <div
-                            class="absolute -right-3 -top-3 hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 backdrop-blur-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </div>
-                        <div class="text-xs font-medium text-indigo-400 uppercase tracking-widest mb-1">API & Auth Layer
-                        </div>
-                        <div class="text-white font-semibold flex items-center justify-center gap-2">
-                            FastAPI
-                            <span class="text-gray-600">|</span>
-                            Firebase Auth
-                        </div>
-                    </div>
-
-                    <div class="flow-line"></div>
-
-                    <!-- Data & NLP Layer -->
-                    <div class="w-full grid grid-cols-2 gap-4">
-                        <div
-                            class="bg-emerald-900/30 border border-emerald-500/30 rounded-xl p-4 text-center shadow-lg">
-                            <div class="text-xs font-medium text-emerald-400 uppercase tracking-widest mb-1">NLP Engine
-                            </div>
-                            <div class="text-gray-300 text-sm font-medium">TextBlob, spaCy,<br>NRCLex</div>
-                        </div>
-                        <div class="bg-[#262626] border border-[#444] rounded-xl p-4 text-center shadow-lg">
-                            <div class="text-xs font-medium text-amber-500/80 uppercase tracking-widest mb-1">Database
-                            </div>
-                            <div class="text-gray-300 text-sm font-medium">Cloud Firestore</div>
-                        </div>
-                    </div>
+            <!-- ═══════════════ TABLE OF CONTENTS ═══════════════ -->
+            <div class="section-card mb-12 animate-in" style="animation-delay:0.1s">
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">📑 Table of Contents</h2>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-1">
+                    <a href="#what-is-aura" class="toc-link">1. What is Aura?</a>
+                    <a href="#how-it-works" class="toc-link">2. How It Works</a>
+                    <a href="#nlp-pipeline" class="toc-link">3. NLP Pipeline (8 Features)</a>
+                    <a href="#ai-intelligence" class="toc-link">4. Gemini AI Intelligence</a>
+                    <a href="#backend-architecture" class="toc-link">5. Backend Architecture</a>
+                    <a href="#frontend-modules" class="toc-link">6. Frontend Modules</a>
+                    <a href="#auth-security" class="toc-link">7. Authentication & Security</a>
+                    <a href="#database" class="toc-link">8. Database & Cloud</a>
+                    <a href="#tech-stack" class="toc-link">9. Technology Stack</a>
                 </div>
             </div>
 
-            <!-- Detailed Stack Breakdown -->
-            <div class="grid md:grid-cols-2 gap-6">
-
-                <!-- Frontend Tech -->
-                <div class="tech-card group">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div
-                            class="p-2 bg-[#1a1a1a] rounded text-teal-400 border border-[#333] group-hover:border-teal-500/30 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- ═══════════════ 1. WHAT IS AURA ═══════════════ -->
+            <section id="what-is-aura" class="mb-14 animate-in" style="animation-delay:0.15s">
+                <div class="section-card glow-emerald">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20"><svg
+                                class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
-                                </path>
-                            </svg>
-                        </div>
-                        <h3 class="text-xl font-semibold text-white">Frontend Technology</h3>
+                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg></div>
+                        <h2 class="text-2xl font-bold text-white">1. What is Aura?</h2>
                     </div>
-                    <ul class="space-y-3 text-sm text-gray-400">
-                        <li class="flex items-start gap-2">
-                            <span class="text-teal-500 mt-1">&bull;</span>
-                            <div>
-                                <strong class="text-gray-300">Vanilla JavaScript (ES6+):</strong> Built without heavy
-                                React or Vue frameworks for ultimate speed, leveraging raw DOM manipulation.
-                            </div>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-teal-500 mt-1">&bull;</span>
-                            <div>
-                                <strong class="text-gray-300">Tailwind CSS:</strong> Utility-first styling enabling the
-                                highly custom, glassmorphic dark-theme design.
-                            </div>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-teal-500 mt-1">&bull;</span>
-                            <div>
-                                <strong class="text-gray-300">Chart.js:</strong> Used to render the real-time "Personal
-                                Trend" dashboard, mapping sentiment confidence curves.
-                            </div>
-                        </li>
-                    </ul>
-                </div>
+                    <p class="text-gray-400 leading-relaxed mb-4">
+                        Aura is a <strong class="text-gray-200">production-grade Sentiment Analysis web
+                            application</strong> designed as a comprehensive final-year / capstone project. Unlike
+                        simple polarity checkers, Aura performs <strong class="text-emerald-400">8 distinct NLP
+                            analyses</strong> on every piece of text, delivering a multi-dimensional emotional
+                        intelligence report.
+                    </p>
+                    <p class="text-gray-400 leading-relaxed mb-6">
+                        The platform supports <strong class="text-gray-200">single-text analysis</strong> with real-time
+                        typing detection, <strong class="text-gray-200">bulk CSV/TXT file uploads</strong> (up to 50
+                        texts per batch), a <strong class="text-gray-200">personal analytics dashboard</strong> with
+                        Chart.js visualizations, a full <strong class="text-gray-200">admin panel</strong> for
+                        platform-wide management, and <strong class="text-gray-200">Gemini AI–powered explanations and
+                            tone rewrites</strong>.
+                    </p>
 
-                <!-- Backend Tech -->
-                <div class="tech-card group">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div
-                            class="p-2 bg-[#1a1a1a] rounded text-indigo-400 border border-[#333] group-hover:border-indigo-500/30 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01">
-                                </path>
-                            </svg>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="stat-bubble">
+                            <div class="text-2xl font-bold text-emerald-400">8</div>
+                            <div class="text-xs text-gray-500 mt-1">NLP Features</div>
                         </div>
-                        <h3 class="text-xl font-semibold text-white">Backend Server</h3>
-                    </div>
-                    <ul class="space-y-3 text-sm text-gray-400">
-                        <li class="flex items-start gap-2">
-                            <span class="text-indigo-500 mt-1">&bull;</span>
-                            <div>
-                                <strong class="text-gray-300">Python 3 & FastAPI:</strong> A highly performant,
-                                asynchronous web framework that easily handles bulk-upload API requests.
-                            </div>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-indigo-500 mt-1">&bull;</span>
-                            <div>
-                                <strong class="text-gray-300">Firebase Admin SDK:</strong> Python library used to verify
-                                OAuth Bearer tokens, rejecting unauthorized/spoofed requests.
-                            </div>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-indigo-500 mt-1">&bull;</span>
-                            <div>
-                                <strong class="text-gray-300">Cloud Firestore DB:</strong> A NoSQL document database
-                                used over SQLite to allow for highly scalable, real-time query saving.
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- NLP Tech -->
-                <div class="tech-card group md:col-span-2">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div
-                            class="p-2 bg-[#1a1a1a] rounded text-emerald-400 border border-[#333] group-hover:border-emerald-500/30 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
-                                </path>
-                            </svg>
+                        <div class="stat-bubble">
+                            <div class="text-2xl font-bold text-indigo-400">5</div>
+                            <div class="text-xs text-gray-500 mt-1">API Route Modules</div>
                         </div>
-                        <h3 class="text-xl font-semibold text-white">Natural Language Processing Pipeline</h3>
-                    </div>
-                    <div class="grid sm:grid-cols-2 gap-4">
-                        <div class="bg-[#0f0f0f] border border-[#222] p-4 rounded-lg">
-                            <h4 class="text-gray-300 font-medium mb-1">1. Polarity Analysis</h4>
-                            <p class="text-sm text-gray-500">Utilizes <code
-                                    class="text-emerald-400/80 bg-emerald-400/10 px-1 rounded">TextBlob</code> to
-                                mathematically determine if text is Positive, Negative, or Neutral.</p>
+                        <div class="stat-bubble">
+                            <div class="text-2xl font-bold text-amber-400">50</div>
+                            <div class="text-xs text-gray-500 mt-1">Texts per Bulk Upload</div>
                         </div>
-                        <div class="bg-[#0f0f0f] border border-[#222] p-4 rounded-lg">
-                            <h4 class="text-gray-300 font-medium mb-1">2. Emotion Extraction</h4>
-                            <p class="text-sm text-gray-500">Powered by <code
-                                    class="text-emerald-400/80 bg-emerald-400/10 px-1 rounded">NRCLex</code>, extracting
-                                raw underlying emotions (e.g. Trust, Anger, Joy, Fear).</p>
-                        </div>
-                        <div class="bg-[#0f0f0f] border border-[#222] p-4 rounded-lg">
-                            <h4 class="text-gray-300 font-medium mb-1">3. Aspect-Based Sentiments</h4>
-                            <p class="text-sm text-gray-500">Uses <code
-                                    class="text-emerald-400/80 bg-emerald-400/10 px-1 rounded">spaCy</code> dependency
-                                parsing to isolate nouns (aspects) and determine their specific targeted sentiment.</p>
-                        </div>
-                        <div class="bg-[#0f0f0f] border border-[#222] p-4 rounded-lg">
-                            <h4 class="text-gray-300 font-medium mb-1">4. Named Entity Recognition</h4>
-                            <p class="text-sm text-gray-500">The <code
-                                    class="text-emerald-400/80 bg-emerald-400/10 px-1 rounded">en_core_web_sm</code> ML
-                                model identifies dates, people, organizations, and geographical places.</p>
+                        <div class="stat-bubble">
+                            <div class="text-2xl font-bold text-rose-400">2</div>
+                            <div class="text-xs text-gray-500 mt-1">AI-Powered Features</div>
                         </div>
                     </div>
                 </div>
+            </section>
 
+            <!-- ═══════════════ 2. HOW IT WORKS ═══════════════ -->
+            <section id="how-it-works" class="mb-14 animate-in" style="animation-delay:0.2s">
+                <div class="section-card glow-indigo">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20"><svg
+                                class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg></div>
+                        <h2 class="text-2xl font-bold text-white">2. How It Works — End-to-End Flow</h2>
+                    </div>
+                    <p class="text-gray-400 leading-relaxed mb-6">When you type or paste text into the Aura Analyzer,
+                        the following pipeline executes in milliseconds:</p>
+
+                    <!-- Flow Diagram -->
+                    <div class="flex flex-col items-center w-full max-w-lg mx-auto mb-6">
+                        <div class="w-full bg-[#141414] border border-[#262626] rounded-xl p-4 text-center">
+                            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Step 1</div>
+                            <div class="text-white font-semibold text-sm">User types text in the Analyzer
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">Auto-detect on pause or manual "Analyze" click</div>
+                        </div>
+                        <div class="flow-connector"></div>
+                        <div class="w-full bg-[#141414] border border-indigo-500/20 rounded-xl p-4 text-center">
+                            <div class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Step 2
+                            </div>
+                            <div class="text-white font-semibold text-sm">Frontend sends POST /api/analyze</div>
+                            <div class="text-xs text-gray-500 mt-1">Firebase Bearer token attached for authentication
+                            </div>
+                        </div>
+                        <div class="flow-connector"></div>
+                        <div class="w-full bg-[#141414] border border-emerald-500/20 rounded-xl p-4 text-center">
+                            <div class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Step 3
+                            </div>
+                            <div class="text-white font-semibold text-sm">NLP Service processes all 8 analyses</div>
+                            <div class="text-xs text-gray-500 mt-1">TextBlob → NRCLex → spaCy → Sarcasm → Toxicity →
+                                Sentences → Keywords</div>
+                        </div>
+                        <div class="flow-connector"></div>
+                        <div class="w-full bg-[#141414] border border-amber-500/20 rounded-xl p-4 text-center">
+                            <div class="text-[10px] font-bold text-amber-400 uppercase tracking-widest mb-1">Step 4
+                            </div>
+                            <div class="text-white font-semibold text-sm">Result saved to Cloud Firestore</div>
+                            <div class="text-xs text-gray-500 mt-1">Stored with UID, timestamp, emotions, entities,
+                                aspects</div>
+                        </div>
+                        <div class="flow-connector"></div>
+                        <div class="w-full bg-[#141414] border border-[#262626] rounded-xl p-4 text-center">
+                            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Step 5</div>
+                            <div class="text-white font-semibold text-sm">Rich results rendered in the frontend</div>
+                            <div class="text-xs text-gray-500 mt-1">Sentiment card, emotions, entities, aspects,
+                                sarcasm, toxicity, sentences, keyword map</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════ 3. NLP PIPELINE ═══════════════ -->
+            <section id="nlp-pipeline" class="mb-14 animate-in" style="animation-delay:0.25s">
+                <div class="section-card glow-emerald">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20"><svg
+                                class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg></div>
+                        <h2 class="text-2xl font-bold text-white">3. The NLP Pipeline — 8 Analysis Features</h2>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-6">All features are orchestrated by a single unified analysis
+                        function that runs every processor in sequence and returns a comprehensive result object.</p>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- F1: Polarity -->
+                        <div class="feature-grid-item">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span
+                                    class="module-pill bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Core</span>
+                                <h3 class="text-white font-semibold">① Sentiment Polarity</h3>
+                            </div>
+                            <p class="text-sm text-gray-500 leading-relaxed mb-2">Uses <strong
+                                    class="text-gray-300">TextBlob</strong> to compute a numerical polarity score (−1.0
+                                to +1.0). Text with polarity > 0.1 is classified <span
+                                    class="text-emerald-400">Positive</span>, below −0.1 is <span
+                                    class="text-rose-400">Negative</span>, and everything else is <span
+                                    class="text-gray-400">Neutral</span>.</p>
+                            <p class="text-xs text-gray-600">Confidence = |polarity| × 1.5, capped at 1.0</p>
+                        </div>
+                        <!-- F2: Emotions -->
+                        <div class="feature-grid-item">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span
+                                    class="module-pill bg-amber-500/10 text-amber-400 border border-amber-500/20">NRC</span>
+                                <h3 class="text-white font-semibold">② Emotion Extraction</h3>
+                            </div>
+                            <p class="text-sm text-gray-500 leading-relaxed mb-2">Powered by <strong
+                                    class="text-gray-300">NRCLex</strong> (NRC Emotion Lexicon), this maps every word
+                                against 8 emotion categories: joy, trust, fear, surprise, sadness, disgust, anger, and
+                                anticipation. Top 3 emotions are returned.</p>
+                            <p class="text-xs text-gray-600">Filters out generic "positive"/"negative" tags for cleaner
+                                results</p>
+                        </div>
+                        <!-- F3: NER -->
+                        <div class="feature-grid-item">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span
+                                    class="module-pill bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">spaCy</span>
+                                <h3 class="text-white font-semibold">③ Named Entity Recognition</h3>
+                            </div>
+                            <p class="text-sm text-gray-500 leading-relaxed mb-2">The <strong
+                                    class="text-gray-300">en_core_web_sm</strong> ML model identifies real-world
+                                entities: people (PERSON), organizations (ORG), locations (GPE), dates (DATE), monetary
+                                values (MONEY), and more. Up to 5 unique entities returned.</p>
+                            <p class="text-xs text-gray-600">Only runs when language is detected as English</p>
+                        </div>
+                        <!-- F4: ABSA -->
+                        <div class="feature-grid-item">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span
+                                    class="module-pill bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">spaCy</span>
+                                <h3 class="text-white font-semibold">④ Aspect-Based Sentiment</h3>
+                            </div>
+                            <p class="text-sm text-gray-500 leading-relaxed mb-2">Uses spaCy's <strong
+                                    class="text-gray-300">dependency parsing + noun chunks</strong> to isolate
+                                individual topics (aspects) in a sentence, then calculates each aspect's polarity using
+                                a ±3 token context window via TextBlob.</p>
+                            <p class="text-xs text-gray-600">e.g., "The camera is great but battery is terrible" →
+                                camera: Positive, battery: Negative</p>
+                        </div>
+                        <!-- F5: Sarcasm -->
+                        <div class="feature-grid-item">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span
+                                    class="module-pill bg-rose-500/10 text-rose-400 border border-rose-500/20">Heuristic</span>
+                                <h3 class="text-white font-semibold">⑤ Sarcasm Detection</h3>
+                            </div>
+                            <p class="text-sm text-gray-500 leading-relaxed mb-2">A multi-signal heuristic scorer
+                                analyzing: <strong class="text-gray-300">20+ sarcasm phrases</strong> ("oh great", "yeah
+                                right"), positive-polarity with negative emotions contradiction, excessive punctuation
+                                (!!!), ALL CAPS words, and contradictory emoji (🙄😒).</p>
+                            <p class="text-xs text-gray-600">Score 0–1 → Sincere (<0.25), Possibly Sarcastic
+                                    (0.25–0.45), Likely Sarcastic (≥0.45)</p>
+                        </div>
+                        <!-- F6: Toxicity -->
+                        <div class="feature-grid-item">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span
+                                    class="module-pill bg-rose-500/10 text-rose-400 border border-rose-500/20">Filter</span>
+                                <h3 class="text-white font-semibold">⑥ Toxicity / Hate Speech</h3>
+                            </div>
+                            <p class="text-sm text-gray-500 leading-relaxed mb-2">Two-tier word-list classification:
+                                <strong class="text-gray-300">TOXIC_WORDS</strong> (high-severity: violence-related
+                                terms) and <strong class="text-gray-300">OFFENSIVE_WORDS</strong> (medium-severity:
+                                insults and slurs). Returns label (Safe/Offensive/Toxic), a severity score, and matched
+                                words.
+                            </p>
+                            <p class="text-xs text-gray-600">Toxic base score: 0.6 + 0.1 per match; Offensive base: 0.3
+                                + 0.08 per match</p>
+                        </div>
+                        <!-- F7: Sentence Breakdown -->
+                        <div class="feature-grid-item">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span
+                                    class="module-pill bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">TextBlob</span>
+                                <h3 class="text-white font-semibold">⑦ Sentence-Level Breakdown</h3>
+                            </div>
+                            <p class="text-sm text-gray-500 leading-relaxed mb-2">Splits the input into individual
+                                sentences using TextBlob's sentence tokenizer, then computes <strong
+                                    class="text-gray-300">independent polarity per sentence</strong>. This reveals
+                                mixed-sentiment texts where overall polarity might be misleadingly neutral.</p>
+                            <p class="text-xs text-gray-600">Each sentence tagged Positive/Negative/Neutral with its
+                                exact polarity score</p>
+                        </div>
+                        <!-- F8: Keyword Map -->
+                        <div class="feature-grid-item">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span
+                                    class="module-pill bg-amber-500/10 text-amber-400 border border-amber-500/20">Hybrid</span>
+                                <h3 class="text-white font-semibold">⑧ Keyword Sentiment Map</h3>
+                            </div>
+                            <p class="text-sm text-gray-500 leading-relaxed mb-2">A hybrid of <strong
+                                    class="text-gray-300">TextBlob per-word polarity</strong> + <strong
+                                    class="text-gray-300">NRCLex emotion tagging</strong>. First scores every
+                                non-stopword via TextBlob, then augments unscored words using NRC's affect dictionary
+                                (positive/negative tags). Top 15 keywords by absolute polarity are returned.</p>
+                            <p class="text-xs text-gray-600">Color-coded: green (positive), red (negative), gray
+                                (neutral)</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════ 4. AI INTELLIGENCE ═══════════════ -->
+            <section id="ai-intelligence" class="mb-14 animate-in" style="animation-delay:0.3s">
+                <div class="section-card"
+                    style="background: linear-gradient(135deg, rgba(26,10,46,0.4), rgba(15,15,31,0.4), rgba(10,26,10,0.4)); border-color: #2d1b56;">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="p-2.5 bg-purple-500/10 rounded-xl border border-purple-500/20"><svg
+                                class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg></div>
+                        <h2 class="text-2xl font-bold text-white">4. Gemini AI Intelligence</h2>
+                    </div>
+                    <p class="text-gray-400 leading-relaxed mb-6">Beyond local NLP, Aura integrates <strong
+                            class="text-purple-300">Google Gemini 2.5 Flash</strong> for two advanced AI-powered
+                        features accessible via dedicated service and API layers:</p>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="feature-grid-item" style="border-color: #2d1b56;">
+                            <h3 class="text-white font-semibold mb-2">✨ AI Explanation</h3>
+                            <p class="text-sm text-gray-500 leading-relaxed">After analysis, the user can click <strong
+                                    class="text-gray-300">"Explain with AI"</strong>. Gemini receives the full analysis
+                                context (sentiment, confidence, emotions, entities) and generates a <strong
+                                    class="text-gray-300">2–3 sentence human-readable narrative</strong> explaining
+                                <em>why</em> the text carries its sentiment.
+                            </p>
+                            <p class="text-xs text-gray-600 mt-2">Endpoint: POST /api/ai/explain</p>
+                        </div>
+                        <div class="feature-grid-item" style="border-color: #2d1b56;">
+                            <h3 class="text-white font-semibold mb-2">🔄 Tone Rewriter</h3>
+                            <p class="text-sm text-gray-500 leading-relaxed">Gemini rewrites the user's text into
+                                <strong class="text-gray-300">3 different tones</strong>: <span
+                                    class="text-emerald-400">Positive</span> (optimistic, upbeat), <span
+                                    class="text-gray-300">Neutral</span> (balanced, factual), and <span
+                                    class="text-indigo-400">Formal</span> (corporate, professional). Results are
+                                returned as structured JSON.
+                            </p>
+                            <p class="text-xs text-gray-600 mt-2">Endpoint: POST /api/ai/rewrite</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════ 5. BACKEND ARCHITECTURE ═══════════════ -->
+            <section id="backend-architecture" class="mb-14 animate-in" style="animation-delay:0.35s">
+                <div class="section-card glow-indigo">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20"><svg
+                                class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
+                            </svg></div>
+                        <h2 class="text-2xl font-bold text-white">5. Backend Architecture</h2>
+                    </div>
+                    <p class="text-gray-400 leading-relaxed mb-6">The backend is built with <strong
+                            class="text-gray-200">Python 3 + FastAPI</strong> using a clean modular architecture.
+                        Routers are auto-prefixed under <code
+                            class="text-indigo-400/80 bg-indigo-500/10 px-1.5 py-0.5 rounded text-xs">/api</code> and
+                        the frontend is served statically from the same server.</p>
+
+                    <div class="space-y-3">
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-1">Application Entry Point</h4>
+                            <p class="text-xs text-gray-500">Initializes FastAPI with lifespan events, registers all 4
+                                API routers, mounts static CSS/JS directories, and defines routes for serving all
+                                frontend HTML pages. Runs via Uvicorn with hot-reload.</p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-1">Core Analysis API</h4>
+                            <p class="text-xs text-gray-500"><strong class="text-gray-400">POST /api/analyze:</strong>
+                                Single text analysis → runs full NLP pipeline → saves to Firestore → returns result.
+                                <strong class="text-gray-400">POST /api/analyze/bulk:</strong> Accepts CSV/TXT upload →
+                                processes up to 50 texts in a batch → commits all to Firestore via batch writes →
+                                returns aggregated summary.
+                            </p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-1">User Data API</h4>
+                            <p class="text-xs text-gray-500"><strong class="text-gray-400">GET /api/recent:</strong>
+                                Fetches the user's 15 most recent analyses sorted by timestamp. <strong
+                                    class="text-gray-400">GET /api/user/stats:</strong> Returns total counts + sentiment
+                                trend data for Chart.js. <strong class="text-gray-400">GET /api/user/analytics:</strong>
+                                Deep analytics with sentiment history + word frequency map for the word cloud.</p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-1">Admin Panel API</h4>
+                            <p class="text-xs text-gray-500">Platform-wide statistics with pagination & filtering, daily
+                                sentiment trend data, global word frequency analysis with sentiment tagging, query
+                                deletion, user management (list/delete), and full CSV export of all platform data.</p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-1">Gemini AI API</h4>
+                            <p class="text-xs text-gray-500">Two endpoints for AI-powered features: <strong
+                                    class="text-gray-400">POST /api/ai/explain</strong> (narrative explanation) and
+                                <strong class="text-gray-400">POST /api/ai/rewrite</strong> (tone rewriting). Both
+                                require authentication and delegate to the Gemini service layer.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════ 6. FRONTEND MODULES ═══════════════ -->
+            <section id="frontend-modules" class="mb-14 animate-in" style="animation-delay:0.4s">
+                <div class="section-card glow-amber">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/20"><svg
+                                class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg></div>
+                        <h2 class="text-2xl font-bold text-white">6. Frontend Modules</h2>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-1">🔮 The Analyzer Engine</h4>
+                            <p class="text-xs text-gray-500">The core interface with tabbed input (text mode with
+                                auto-analyze on pause, file upload with drag-and-drop). Renders all 8 NLP results in
+                                dedicated UI panels: sentiment card with emoji, emotion tags, entity badges, aspect
+                                pills, sarcasm meter, toxicity shield, sentence-by-sentence breakdown with color coding,
+                                and a keyword sentiment cloud. Includes "Explain with AI" and "Rewrite Tone" buttons.
+                            </p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-1">📊 Personal Analytics Dashboard</h4>
+                            <p class="text-xs text-gray-500">Three-tab dashboard: <strong
+                                    class="text-gray-400">Overview</strong> (KPI stat cards with animated counters,
+                                sentiment distribution pie chart, word cloud), <strong
+                                    class="text-gray-400">History</strong> (scrollable list of past analyses with
+                                re-analyze capability), and <strong class="text-gray-400">AI Profile</strong>
+                                (Gemini-generated personality insights based on your analysis history). Chart.js powers
+                                all visualizations.</p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-1">🛡️ Admin Control Panel</h4>
+                            <p class="text-xs text-gray-500">Platform-wide management interface with real-time stats,
+                                paginated query browser with sentiment filtering, daily sentiment trend charts, word
+                                frequency word cloud, user management table (with delete capability), and one-click CSV
+                                data export.</p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-1">🔐 Authentication Portal</h4>
+                            <p class="text-xs text-gray-500">Firebase Authentication with email/password and Google
+                                Sign-In. Handles login, registration, and session management with ID token extraction
+                                for API authorization.</p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-1">🔔 Notification System</h4>
+                            <p class="text-xs text-gray-500">Custom toast notification system with animated
+                                slide-in/out, multiple severity levels (success, error, warning, info), auto-dismiss
+                                timers, and stacking support for multiple simultaneous notifications.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════ 7. AUTH & SECURITY ═══════════════ -->
+            <section id="auth-security" class="mb-14 animate-in" style="animation-delay:0.45s">
+                <div class="section-card glow-rose">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="p-2.5 bg-rose-500/10 rounded-xl border border-rose-500/20"><svg
+                                class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg></div>
+                        <h2 class="text-2xl font-bold text-white">7. Authentication & Security</h2>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-2">Frontend Auth (Firebase Client SDK)</h4>
+                            <p class="text-xs text-gray-500 leading-relaxed">Firebase Authentication handles user
+                                registration and login via email/password and Google OAuth. Upon successful login, the
+                                Firebase Client SDK generates an ID token, which is stored in session and attached as a
+                                <code class="text-rose-400/80 bg-rose-500/10 px-1 rounded">Bearer</code> token to every
+                                API request's Authorization header.
+                            </p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <h4 class="text-white font-semibold text-sm mb-2">Backend Verification (Firebase Admin SDK)
+                            </h4>
+                            <p class="text-xs text-gray-500 leading-relaxed">The security module provides a FastAPI
+                                dependency that extracts the Bearer token from every incoming request, verifies it
+                                against Firebase using the Admin SDK, and returns the decoded user payload (UID, email)
+                                to route handlers — ensuring only authenticated users can access protected APIs.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════ 8. DATABASE ═══════════════ -->
+            <section id="database" class="mb-14 animate-in" style="animation-delay:0.5s">
+                <div class="section-card glow-amber">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/20"><svg
+                                class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                            </svg></div>
+                        <h2 class="text-2xl font-bold text-white">8. Database & Cloud Infrastructure</h2>
+                    </div>
+                    <p class="text-gray-400 leading-relaxed mb-4">
+                        Aura uses <strong class="text-amber-300">Google Cloud Firestore</strong> — a serverless,
+                        real-time NoSQL document database chosen for its scalability, automatic indexing, and seamless
+                        integration with Firebase Auth.
+                    </p>
+                    <div class="feature-grid-item mb-3">
+                        <h4 class="text-white font-semibold text-sm mb-2">Collection: <code
+                                class="text-amber-400/80 bg-amber-500/10 px-1 rounded">queries</code></h4>
+                        <p class="text-xs text-gray-500 mb-2">Each document stores the complete analysis result with
+                            these fields:</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                            <span
+                                class="bg-[#141414] border border-[#222] px-2 py-1 rounded text-gray-400 text-center">text</span>
+                            <span
+                                class="bg-[#141414] border border-[#222] px-2 py-1 rounded text-gray-400 text-center">sentiment</span>
+                            <span
+                                class="bg-[#141414] border border-[#222] px-2 py-1 rounded text-gray-400 text-center">confidence</span>
+                            <span
+                                class="bg-[#141414] border border-[#222] px-2 py-1 rounded text-gray-400 text-center">language</span>
+                            <span
+                                class="bg-[#141414] border border-[#222] px-2 py-1 rounded text-gray-400 text-center">emotions
+                                (JSON)</span>
+                            <span
+                                class="bg-[#141414] border border-[#222] px-2 py-1 rounded text-gray-400 text-center">entities
+                                (JSON)</span>
+                            <span
+                                class="bg-[#141414] border border-[#222] px-2 py-1 rounded text-gray-400 text-center">aspects
+                                (JSON)</span>
+                            <span
+                                class="bg-[#141414] border border-[#222] px-2 py-1 rounded text-gray-400 text-center">uid</span>
+                            <span
+                                class="bg-[#141414] border border-[#222] px-2 py-1 rounded text-emerald-400/80 text-center col-span-2 sm:col-span-4">timestamp
+                                (SERVER_TIMESTAMP)</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-600">Initialization handled gracefully in <code
+                            class="text-amber-400/80 bg-amber-500/10 px-1 rounded">config.py</code> — if Firebase
+                        credentials are missing, the app falls back to local-only mode with no data persistence.</p>
+                </div>
+            </section>
+
+            <!-- ═══════════════ 9. TECH STACK ═══════════════ -->
+            <section id="tech-stack" class="mb-14 animate-in" style="animation-delay:0.55s">
+                <div class="section-card">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="p-2.5 bg-gray-500/10 rounded-xl border border-gray-500/20"><svg
+                                class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg></div>
+                        <h2 class="text-2xl font-bold text-white">9. Complete Technology Stack</h2>
+                    </div>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="feature-grid-item">
+                            <h4 class="text-emerald-400 font-semibold text-xs uppercase tracking-wider mb-3">Frontend
+                            </h4>
+                            <ul class="space-y-1.5 text-xs text-gray-400">
+                                <li>• Vanilla JavaScript (ES6+)</li>
+                                <li>• Tailwind CSS (CDN)</li>
+                                <li>• Chart.js (dashboards)</li>
+                                <li>• WordCloud2.js (word clouds)</li>
+                                <li>• Firebase Client SDK v10</li>
+                                <li>• Inter (Google Fonts)</li>
+                            </ul>
+                        </div>
+                        <div class="feature-grid-item">
+                            <h4 class="text-indigo-400 font-semibold text-xs uppercase tracking-wider mb-3">Backend</h4>
+                            <ul class="space-y-1.5 text-xs text-gray-400">
+                                <li>• Python 3 + FastAPI</li>
+                                <li>• Uvicorn (ASGI server)</li>
+                                <li>• Firebase Admin SDK</li>
+                                <li>• Google Generative AI SDK</li>
+                                <li>• Pandas (CSV parsing)</li>
+                                <li>• python-dotenv</li>
+                            </ul>
+                        </div>
+                        <div class="feature-grid-item">
+                            <h4 class="text-amber-400 font-semibold text-xs uppercase tracking-wider mb-3">NLP & AI</h4>
+                            <ul class="space-y-1.5 text-xs text-gray-400">
+                                <li>• TextBlob (polarity analysis)</li>
+                                <li>• spaCy + en_core_web_sm</li>
+                                <li>• NRCLex (emotion lexicon)</li>
+                                <li>• langdetect (language ID)</li>
+                                <li>• Gemini 2.5 Flash (AI)</li>
+                                <li>• Cloud Firestore (NoSQL)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════ CLOSING ═══════════════ -->
+            <div class="text-center mt-16 mb-8">
+                <p class="text-gray-600 text-sm mb-6">Ready to experience Aura's full power?</p>
+                <a href="/auth.html"
+                    class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold rounded-full shadow-[0_0_25px_rgba(16,185,129,0.3)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] transition-all hover:-translate-y-0.5 text-lg">
+                    Start Analyzing Now
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </a>
             </div>
 
         </div>
     </main>
 
-    <!-- Comprehensive Footer -->
-    <footer class="w-full border-t border-[#262626] bg-[#0c0c0c] mt-auto relative z-10 pt-16 pb-8">
+    <!-- Footer -->
+    <footer class="w-full border-t border-[#1a1a1a] bg-[#080808] mt-auto relative z-10 pt-16 pb-8">
         <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <!-- Brand -->
             <div class="col-span-1 md:col-span-2">
                 <div class="flex items-center gap-3 mb-4">
                     <div
@@ -288,21 +758,20 @@
                     TextBlob, designed to decode emotional frequencies in milliseconds.
                 </p>
             </div>
-
-            <!-- Quick Links -->
             <div>
                 <h4 class="text-white font-semibold mb-4 tracking-wide text-sm uppercase">Platform</h4>
                 <ul class="space-y-3">
                     <li><a href="/" class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">Home</a></li>
-                    <li><a href="/auth.html"
-                            class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">Dashboard</a></li>
+                    <li><a href="/app.html"
+                            class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">Analyzer Engine</a>
+                    </li>
+                    <li><a href="/dashboard.html"
+                            class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">My Dashboard</a></li>
                     <li><a href="/about.html"
                             class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">About Project</a>
                     </li>
                 </ul>
             </div>
-
-            <!-- Legal -->
             <div>
                 <h4 class="text-white font-semibold mb-4 tracking-wide text-sm uppercase">Legal</h4>
                 <ul class="space-y-3">
@@ -315,7 +784,6 @@
                 </ul>
             </div>
         </div>
-
         <div
             class="max-w-7xl mx-auto px-6 border-t border-[#1a1a1a] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">
             <p>&copy; 2026 Aura AI Systems. All rights reserved.</p>
@@ -323,6 +791,8 @@
                     Agent</span></p>
         </div>
     </footer>
+
+    <script type="module" src="/js/header.js"></script>
 </body>
 
 </html>

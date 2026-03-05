@@ -1,4 +1,8 @@
 import { auth, provider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } from "./firebaseConfig.js";
+import { showToast, queueToast, checkPendingToast } from './toast.js';
+
+// Show any queued toasts (e.g., "Signed out successfully" from app/dashboard)
+document.addEventListener('DOMContentLoaded', checkPendingToast);
 
 const form = document.getElementById("authForm");
 const nameFieldGroup = document.getElementById("nameFieldGroup");
@@ -79,16 +83,19 @@ form.addEventListener("submit", async (e) => {
     try {
         if (isLoginMode) {
             await signInWithEmailAndPassword(auth, email, password);
+            queueToast('Welcome back! Signed in successfully', 'success');
         } else {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             await updateProfile(userCredential.user, {
                 displayName: fullname
             });
+            queueToast('Account created successfully! Welcome to Aura', 'success');
         }
         // onAuthStateChanged will redirect
     } catch (error) {
         console.error(error);
         showError(error.message || "An error occurred during authentication.");
+        showToast(error.message || 'Authentication failed', 'error');
         setLoading(false);
     }
 });
@@ -97,9 +104,11 @@ googleBtn.addEventListener("click", async () => {
     hideError();
     try {
         await signInWithPopup(auth, provider);
+        queueToast('Google sign-in successful!', 'success');
         // onAuthStateChanged will redirect
     } catch (error) {
         console.error(error);
         showError(error.message || "Google authentication failed.");
+        showToast(error.message || 'Google authentication failed', 'error');
     }
 });
