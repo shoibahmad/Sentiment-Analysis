@@ -141,7 +141,7 @@ function doLogin() {
 
     if (username === "admin" && password === "password123") {
         document.getElementById("loginOverlay").style.display = "none";
-        document.getElementById("adminHeader").classList.remove("hidden");
+
         const dashboard = document.getElementById("dashboard");
         if (dashboard) { dashboard.classList.remove("hidden"); dashboard.classList.add("flex"); }
         document.getElementById("adminFooter")?.classList.remove("hidden");

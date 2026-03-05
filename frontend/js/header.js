@@ -183,8 +183,7 @@ async function handleSignOut() {
 
 // ── Init ──
 function initSharedHeader() {
-    // Skip on pages that have their own header (admin, auth, dashboard)
-    if (page === 'admin') return;
+    // Skip on pages that have their own header (auth, dashboard)
     if (path.includes('auth.html')) return;
     if (page === 'dashboard') return; // dashboard has its own header + drawer
 
