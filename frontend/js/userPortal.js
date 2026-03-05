@@ -80,13 +80,11 @@ async function triggerAnalysis() {
 
     if (errorMsg) errorMsg.classList.add("hidden");
 
-    if (isManual) {
-        analyzeBtn.innerHTML = `
-            Processing...
-            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
-        `;
-        analyzeBtn.disabled = true;
-    }
+    analyzeBtn.innerHTML = `
+        Processing...
+        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+    `;
+    analyzeBtn.disabled = true;
 
     try {
         const token = currentUser ? await currentUser.getIdToken() : '';
@@ -122,13 +120,15 @@ async function triggerAnalysis() {
             errorMsg.classList.remove("hidden");
         }
     } finally {
-        if (isManual) {
-            analyzeBtn.innerHTML = `
-                Force Save & Analyze
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            `;
-            analyzeBtn.disabled = false;
-        }
+        analyzeBtn.innerHTML = `
+            Analyze Text
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+        `;
+        analyzeBtn.disabled = false;
+
         if (document.getElementById('resultContent')) document.getElementById('resultContent').classList.remove('opacity-50');
     }
 }
