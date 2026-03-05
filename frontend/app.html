@@ -7,10 +7,15 @@
     <title>Aura - AI Sentiment Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
     <link rel="stylesheet" href="/css/style.css">
+
 </head>
 
 <body class="antialiased min-h-screen flex flex-col items-center">
+
+    <!-- Aura Fluid Background -->
+    <canvas id="aura-canvas"></canvas>
 
     <!-- Header is injected by shared header.js -->
 
@@ -752,6 +757,7 @@
     </footer>
 
     <script type="module" src="/js/header.js"></script>
+    <script src="/js/aura-fluid.js"></script>
     <script type="module" src="/js/userPortal.js"></script>
 </body>
 

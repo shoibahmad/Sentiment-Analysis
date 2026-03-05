@@ -112,7 +112,17 @@ async function triggerAnalysis() {
         triggerAiInsights(data);    // ✨ Gemini AI insights
         fetchRecentAnalyses();
         fetchPersonalStats();
+
+        // Update Dynamic Aura
+        if (window.aura) {
+            window.aura.update({
+                sentiment: data.sentiment,
+                intensity: data.confidence
+            });
+        }
+
         showToast(`Analysis complete — ${data.sentiment} (${Math.round(data.confidence * 100)}%)`, 'success');
+
 
     } catch (err) {
         if (errorMsg) {
@@ -328,7 +338,15 @@ if (fileInput) {
 
             fetchRecentAnalyses();
             fetchPersonalStats();
+
+            // Update Dynamic Aura (based on highest count)
+            if (window.aura) {
+                const dominant = data.summary.Positive >= data.summary.Negative ? 'Positive' : 'Negative';
+                window.aura.update({ sentiment: dominant, intensity: 1.0 });
+            }
+
             showToast(`Bulk analysis complete — ${data.processed_count} texts processed`, 'success');
+
 
         } catch (err) {
             alert(err.message);
