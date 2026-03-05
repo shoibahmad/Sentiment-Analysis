@@ -1,8 +1,9 @@
 import os
 import nltk
 
-# Ensure NLTK can find its data on Render (downloaded to /opt/render/nltk_data during build)
-nltk_data_dir = '/opt/render/nltk_data'
+# Ensure NLTK can find its data on Render (downloaded to backend/nltk_data during build)
+base_dir = os.path.dirname(os.path.abspath(__file__)) # This is backend/services
+nltk_data_dir = os.path.join(os.path.dirname(base_dir), 'nltk_data')
 if os.path.isdir(nltk_data_dir) and nltk_data_dir not in nltk.data.path:
     nltk.data.path.insert(0, nltk_data_dir)
 
