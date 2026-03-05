@@ -278,8 +278,33 @@
                                     </div>
                                 </div>
 
-                                <p class="text-sm text-gray-400 text-center">Check the Live Feed on the right to see the
+                                <p class="text-sm text-gray-400 text-center mb-6">Check the Live Feed on the right to
+                                    see the
                                     detailed itemized analysis.</p>
+
+                                <!-- AI Executive Summary -->
+                                <div id="bulkAiSummaryContainer" class="hidden">
+                                    <div
+                                        class="bg-violet-950/20 border border-violet-900/30 rounded-xl p-5 relative overflow-hidden">
+                                        <div class="absolute top-0 right-0 p-2">
+                                            <span
+                                                class="text-[10px] font-bold text-violet-400 bg-violet-900/40 px-2 py-0.5 rounded border border-violet-800/50 uppercase tracking-widest">AI
+                                                Summary</span>
+                                        </div>
+                                        <h4
+                                            class="text-xs font-bold text-violet-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                </path>
+                                            </svg>
+                                            Executive Summary
+                                        </h4>
+                                        <p id="bulkAiSummaryText" class="text-sm text-gray-300 leading-relaxed italic">
+                                            Generating insights...
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
                         </div>
@@ -576,6 +601,39 @@
                         </div>
                     </div>
 
+                    <!-- 🌀 Manipulation & Dark Patterns -->
+                    <div class="p-6 md:col-span-2 border-t border-[#1f1f1f]">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-lg">🌀</span>
+                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Manipulation & Dark
+                                Patterns</h3>
+                            <span id="manipulationBadge"
+                                class="ml-auto hidden px-2 py-0.5 rounded-full text-[10px] font-bold border"></span>
+                        </div>
+                        <div class="grid md:grid-cols-3 gap-6 items-center">
+                            <div class="md:col-span-1">
+                                <div class="flex justify-between text-xs mb-1.5">
+                                    <span class="text-gray-600">Sincerity Score</span>
+                                    <span id="manipulationScore" class="text-gray-400 font-mono font-bold">0%</span>
+                                </div>
+                                <div
+                                    class="w-full bg-[#1a1a1a] rounded-full h-2.5 border border-[#262626] overflow-hidden">
+                                    <div id="manipulationBar"
+                                        class="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-emerald-500 via-indigo-500 to-purple-600"
+                                        style="width:0%"></div>
+                                </div>
+                                <p id="manipulationLabel" class="text-xs text-gray-500 mt-2 font-medium">—</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <p class="text-[10px] text-gray-600 uppercase tracking-wider mb-2">Detected Indicators
+                                </p>
+                                <div id="manipulationClues" class="flex flex-wrap gap-2">
+                                    <span class="text-xs text-gray-700 italic">No patterns detected</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
@@ -663,7 +721,12 @@
                     <li><a href="/about.html"
                             class="text-gray-500 hover:text-emerald-400 transition-colors text-sm">About Project</a>
                     </li>
+                    <li><a href="/docs" target="_blank"
+                            class="text-gray-500 hover:text-emerald-400 transition-colors text-sm font-medium">API
+                            Documentation</a>
+                    </li>
                 </ul>
+
             </div>
 
             <!-- Legal -->

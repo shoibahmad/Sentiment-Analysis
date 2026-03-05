@@ -50,6 +50,28 @@ SARCASM_PHRASES = [
     "oh absolutely","yeah totally","shocking","love that for me","can't wait",
 ]
 
+# ── Corporate Jargon & Manipulation markers
+CORPORATE_JARGON = {
+    "synergy", "dynamic", "alignment", "bandwidth", "leverage", "paradigm",
+    "touchpoint", "deep dive", "circle back", "low-hanging fruit", "robust",
+    "scalable", "disruptive", "best-in-class", "value-added", "deliverable"
+}
+
+GASLIGHTING_PATTERNS = [
+    "you're overreacting", "it's all in your head", "i never said that",
+    "you're too sensitive", "you're crazy", "not a big deal",
+    "it's your fault", "you made me do it", "everyone agrees that",
+    "i'm only doing this for you"
+]
+
+PASSIVE_AGGRESSIVE_MARKERS = [
+    "per my last email", "as previously stated", "hope that helps",
+    "no offense but", "just checking in", "for future reference",
+    "if you say so", "fine whatever", "don't want to bother you",
+    "thought you should know"
+]
+
+
 
 def get_emoji(sentiment: str) -> str:
     if sentiment == "Positive": return "😄"
@@ -298,6 +320,53 @@ def detect_intent(text: str, polarity: float) -> dict:
         
     return {"label": "Informational / Stating", "color": "gray"}
 
+# ── Feature 8: Dark Pattern & Manipulation Detection
+def detect_manipulation(text: str) -> dict:
+    """
+    Detects if the text contains manipulation, gaslighting, or corporate jargon.
+    Returns label, score, and matched patterns.
+    """
+    lower_text = text.lower()
+    clues = []
+    score = 0.0
+    
+    # Gaslighting
+    matched_gaslighting = [p for p in GASLIGHTING_PATTERNS if p in lower_text]
+    if matched_gaslighting:
+        score += 0.4 * min(len(matched_gaslighting), 2)
+        clues.append(f"Gaslighting indicators: {', '.join(matched_gaslighting[:2])}")
+        
+    # Passive-Aggressive
+    matched_pa = [p for p in PASSIVE_AGGRESSIVE_MARKERS if p in lower_text]
+    if matched_pa:
+        score += 0.25 * min(len(matched_pa), 2)
+        clues.append(f"Passive-aggressive markers: {', '.join(matched_pa[:2])}")
+        
+    # Corporate Jargon
+    words = set(re.findall(r'\b\w+\b', lower_text))
+    matched_jargon = list(words & CORPORATE_JARGON)
+    if matched_jargon:
+        score += 0.15 * min(len(matched_jargon) / 3, 2)
+        clues.append(f"Corporate jargon: {', '.join(matched_jargon[:3])}")
+    
+    # Manipulation score cap
+    score = min(score, 1.0)
+    
+    if score >= 0.6:
+        label = "Highly Manipulative"
+    elif score >= 0.3:
+        label = "Potentially Manipulative"
+    elif score >= 0.1:
+        label = "Business/Formal Jargon"
+    else:
+        label = "Sincere Content"
+        
+    return {
+        "label": label,
+        "score": round(score, 2),
+        "clues": clues
+    }
+
 # ── Main analysis function
 def perform_advanced_analysis(text: str):
     result = {
@@ -313,7 +382,8 @@ def perform_advanced_analysis(text: str):
         "sarcasm": {"score": 0.0, "label": "Sincere", "clues": []},
         "toxicity": {"label": "Safe", "score": 0.0, "matched_words": []},
         "sentence_breakdown": [],
-        "keyword_map": []
+        "keyword_map": [],
+        "manipulation": {"label": "Safe", "score": 0.0, "clues": []}
     }
 
     if not text.strip():
@@ -401,5 +471,6 @@ def perform_advanced_analysis(text: str):
     result["readability"]        = calculate_readability(text)
     result["formality"]          = analyze_formality(text)
     result["intent"]             = detect_intent(text, polarity)
+    result["manipulation"]       = detect_manipulation(text)
 
     return result

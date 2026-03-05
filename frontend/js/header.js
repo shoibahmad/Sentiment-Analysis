@@ -13,7 +13,8 @@ const page = path.endsWith('/') || path.endsWith('index.html') ? 'home'
         : path.includes('dashboard.html') ? 'dashboard'
             : path.includes('about.html') ? 'about'
                 : path.includes('admin.html') ? 'admin'
-                    : 'other';
+                    : path.includes('docs') ? 'docs'
+                        : 'other';
 
 const PAGE_TITLES = {
     home: 'Aura',
@@ -21,8 +22,10 @@ const PAGE_TITLES = {
     dashboard: 'My Dashboard',
     about: 'About Project',
     admin: 'Admin Panel',
+    docs: 'API Documentation',
     other: 'Aura'
 };
+
 
 const PAGE_SUBTITLES = {
     home: 'AI Sentiment Engine',
@@ -30,8 +33,10 @@ const PAGE_SUBTITLES = {
     dashboard: 'Personal analytics',
     about: 'Project documentation',
     admin: 'Command center',
+    docs: 'Developer Portal',
     other: ''
 };
+
 
 // ── Inject drawer CSS ──
 const drawerStyle = document.createElement('style');
@@ -61,7 +66,9 @@ function buildHeader() {
         { href: '/app.html', label: 'Analyzer', key: 'analyzer', icon: '🔮' },
         { href: '/dashboard.html', label: 'Dashboard', key: 'dashboard', icon: '📊' },
         { href: '/about.html', label: 'About', key: 'about', icon: 'ℹ️' },
+        { href: '/docs', label: 'API Docs', key: 'docs', icon: '📡' },
     ];
+
 
     const desktopNav = navLinks.map(l =>
         `<a href="${l.href}" class="header-link ${page === l.key ? 'active' : ''}">${l.label}</a>`
@@ -114,7 +121,9 @@ function buildDrawer() {
         { href: '/dashboard.html', label: 'Dashboard', key: 'dashboard', icon: '📊', bg: 'bg-emerald-900/30 border border-emerald-800/20' },
         { href: '/about.html', label: 'About Project', key: 'about', icon: 'ℹ️', bg: 'bg-[#1a1a1a] border border-[#262626]' },
         { href: '/admin.html', label: 'Admin Panel', key: 'admin', icon: '🛡️', bg: 'bg-[#1a1a1a] border border-[#262626]' },
+        { href: '/docs', label: 'API Documentation', key: 'docs', icon: '📡', bg: 'bg-[#1a1a1a] border border-[#262626]' },
     ];
+
 
     const overlayEl = document.createElement('div');
     overlayEl.id = 'sharedDrawerOverlay';

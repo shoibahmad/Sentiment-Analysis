@@ -33,7 +33,13 @@ async def lifespan(app: FastAPI):
     # ── Shutdown ──
     print("\n  👋  Aura server stopped.\n")
 
-app = FastAPI(title="Aura Advanced API", description="Modular architecture version", lifespan=lifespan)
+app = FastAPI(
+    title="Aura Advanced API",
+    description="Modular architecture version",
+    lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None
+)
 
 # Setup CORS
 app.add_middleware(
@@ -54,6 +60,10 @@ app.include_router(ai_router, prefix="/api")
 # --- Frontend Serving Routes ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+
+@app.get("/docs")
+def serve_custom_docs():
+    return FileResponse(os.path.join(FRONTEND_DIR, "docs.html"))
 
 app.mount("/css", StaticFiles(directory=os.path.join(FRONTEND_DIR, "css")), name="css")
 app.mount("/js", StaticFiles(directory=os.path.join(FRONTEND_DIR, "js")), name="js")

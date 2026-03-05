@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura API Documentation — Developer Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #050505;
+            color: #d4d4d4;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .docs-sidebar {
+            width: 280px;
+            height: calc(100vh - 64px);
+            position: sticky;
+            top: 64px;
+            overflow-y: auto;
+            border-right: 1px solid #1f1f1f;
+        }
+
+        .docs-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .method-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .method-post {
+            background: #1e1b4b;
+            color: #818cf8;
+            border: 1px solid #312e81;
+        }
+
+        .method-get {
+            background: #064e3b;
+            color: #34d399;
+            border: 1px solid #065f46;
+        }
+
+        .code-block {
+            background: #0a0a0a;
+            border: 1px solid #1f1f1f;
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+            margin-top: 12px;
+            margin-bottom: 24px;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 8px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #71717a;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            color: #fff;
+            border-color: #555;
+        }
+
+        .endpoint-card {
+            background: #080808;
+            border: 1px solid #141414;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 48px;
+            transition: border-color 0.3s;
+        }
+
+        .endpoint-card:hover {
+            border-color: #1f1f1f;
+        }
+
+        h2 {
+            color: #fff;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        h3 {
+            color: #fff;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        .api-url {
+            font-family: 'Fira Code', monospace;
+            background: #111;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #a78bfa;
+            border: 1px solid #262626;
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-violet-500/30">
+
+    <!-- Header injected by shared header.js -->
+
+    <div class="flex max-w-7xl mx-auto px-6">
+        <!-- Sidebar Navigation -->
+        <aside class="docs-sidebar hidden lg:block py-10 pr-6">
+            <nav class="space-y-8">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Introduction</p>
+                    <ul class="space-y-3">
+                        <li><a href="#getting-started"
+                                class="text-sm text-gray-400 hover:text-white transition-colors">Getting Started</a>
+                        </li>
+                        <li><a href="#authentication"
+                                class="text-sm text-gray-400 hover:text-white transition-colors">Authentication</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Core Endpoints</p>
+                    <ul class="space-y-3">
+                        <li><a href="#analyze-text"
+                                class="text-sm text-gray-400 hover:text-white transition-colors">Analyze Single Text</a>
+                        </li>
+                        <li><a href="#bulk-analysis"
+                                class="text-sm text-gray-400 hover:text-white transition-colors">Bulk File Analysis</a>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Advanced Features</p>
+                    <ul class="space-y-3">
+                        <li><a href="#manipulation-detection"
+                                class="text-sm text-gray-400 hover:text-white transition-colors">Manipulation
+                                Detection</a></li>
+                        <li><a href="#emotions-entities"
+                                class="text-sm text-gray-400 hover:text-white transition-colors">Emotions & Entities</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 py-10 lg:pl-12">
+            <div class="docs-content">
+
+                <section id="getting-started" class="mb-16 scroll-mt-24">
+                    <h1 class="text-4xl font-extrabold text-white mb-4 tracking-tight">Aura API <span
+                            class="text-violet-500">v2.0</span></h1>
+                    <p class="text-lg text-gray-400 leading-relaxed mb-8">
+                        Welcome to the Aura Developer Portal. Our API provides advanced sentiment intelligence, emotion
+                        extraction,
+                        and dark pattern detection for your applications.
+                    </p>
+
+                    <div class="bg-violet-950/20 border border-violet-900/30 rounded-xl p-5 mb-10">
+                        <div class="flex gap-3">
+                            <span class="text-xl">📡</span>
+                            <div>
+                                <h4 class="text-sm font-bold text-violet-300 uppercase tracking-wider mb-1">Base URL
+                                </h4>
+                                <code class="text-violet-400 text-sm">http://localhost:8000/api</code>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="border-[#1f1f1f] mb-16">
+
+                <!-- Authentication -->
+                <section id="authentication" class="mb-16 scroll-mt-24">
+                    <h2 class="text-2xl font-bold">Authentication</h2>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                        Aura uses Firebase Authentication. All requests must include a valid ID Token in the
+                        Authorization header
+                        using the Bearer scheme.
+                    </p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre
+                            class="text-xs text-gray-300"><code>Authorization: Bearer &lt;YOUR_FIREBASE_ID_TOKEN&gt;</code></pre>
+                    </div>
+                </section>
+
+                <!-- Analyze Text -->
+                <section id="analyze-text" class="endpoint-card scroll-mt-24">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="api-url">/analyze</span>
+                    </div>
+                    <h2 class="text-xl font-bold">Analyze Single Text</h2>
+                    <p class="text-gray-400 text-sm mb-6">
+                        Processes a single string of text through the full NLP pipeline, including sentiment, emotions,
+                        Named Entity Recognition (NER), and manipulation detection.
+                    </p>
+
+                    <h3 class="text-xs uppercase tracking-widest text-gray-500">Request Body</h3>
+                    <div class="code-block">
+                        <pre class="text-xs text-emerald-400"><code>{
+  "text": "Per my last email, I think we should leverage our synergy."
+}</code></pre>
+                    </div>
+
+                    <h3 class="text-xs uppercase tracking-widest text-gray-500">Example cURL</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre class="text-xs text-gray-400"><code>curl -X POST http://localhost:8000/api/analyze \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello world"}'</code></pre>
+                    </div>
+                </section>
+
+                <!-- Bulk Analysis -->
+                <section id="bulk-analysis" class="endpoint-card scroll-mt-24">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="api-url">/analyze/bulk</span>
+                    </div>
+                    <h2 class="text-xl font-bold">Bulk File Analysis</h2>
+                    <p class="text-gray-400 text-sm mb-6">
+                        Upload a file containing multiple texts for batch processing. Gemini AI will generate an
+                        executive summary based on the collective results.
+                    </p>
+
+                    <h3 class="text-xs uppercase tracking-widest text-gray-500">Form Data</h3>
+                    <table class="w-full text-left text-sm text-gray-500 mt-4 mb-6">
+                        <thead>
+                            <tr class="border-b border-[#1f1f1f]">
+                                <th class="py-2 font-semibold text-gray-300">Key</th>
+                                <th class="py-2 font-semibold text-gray-300">Type</th>
+                                <th class="py-2 font-semibold text-gray-300">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#141414]">
+                            <tr>
+                                <td class="py-3 text-violet-400 font-mono">file</td>
+                                <td class="py-3">file</td>
+                                <td class="py-3 text-xs">Supported: .csv (with 'text' column) or .txt</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 class="text-xs uppercase tracking-widest text-gray-500">Interactive Summary Response</h3>
+                    <div class="code-block">
+                        <pre class="text-xs text-blue-400"><code>{
+  "processed_count": 50,
+  "executive_summary": "Most users find the interface intuitive...",
+  "summary": { "Positive": 40, "Negative": 5, "Neutral": 5 },
+  "results": [...]
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Manipulation Detection -->
+                <section id="manipulation-detection" class="mb-16 scroll-mt-24">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <span class="text-xl">🌀</span> Manipulation Detection
+                    </h2>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                        A unique feature that identifies dark patterns, gaslighting, and passive-aggressive behavior.
+                        The `manipulation` object in the response gives you high-level insights.
+                    </p>
+                    <div class="bg-[#0c0c0c] border border-[#1f1f1f] rounded-xl p-6">
+                        <ul class="space-y-4">
+                            <li class="flex gap-4">
+                                <span class="text-rose-400 font-mono text-xs">score</span>
+                                <span class="text-xs text-gray-500">0.0 to 1.0 (Higher means more manipulative)</span>
+                            </li>
+                            <li class="flex gap-4 border-t border-[#141414] pt-4">
+                                <span class="text-rose-400 font-mono text-xs">label</span>
+                                <span class="text-xs text-gray-500">"Sincere Content", "Highly Manipulative",
+                                    etc.</span>
+                            </li>
+                            <li class="flex gap-4 border-t border-[#141414] pt-4">
+                                <span class="text-rose-400 font-mono text-xs">clues</span>
+                                <span class="text-xs text-gray-500">Array of detected patterns (e.g.,
+                                    "Passive-aggressive markers")</span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <footer class="pt-20 pb-10 border-t border-[#1f1f1f] text-center">
+                    <p class="text-xs text-gray-600">© 2026 Aura AI Systems · For Internal Developer Use Only</p>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="/js/header.js"></script>
+    <script>
+        function copyCode(btn) {
+            const code = btn.nextElementSibling.innerText;
+            navigator.clipboard.writeText(code);
+            const originalText = btn.innerText;
+            btn.innerText = 'Copied!';
+            setTimeout(() => btn.innerText = originalText, 2000);
+        }
+    </script>
+</body>
+
+</html>

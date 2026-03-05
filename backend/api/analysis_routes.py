@@ -8,6 +8,7 @@ import pandas as pd
 from core.security import verify_firebase_token
 from core.config import db, firestore
 from services.nlp_service import perform_advanced_analysis
+from services.gemini_service import get_bulk_summary
 
 router = APIRouter()
 
@@ -90,10 +91,14 @@ async def analyze_bulk(file: UploadFile = File(...), user=Depends(verify_firebas
         
     if batch:
         batch.commit()
+    
+    # Generate Executive Summary
+    executive_summary = get_bulk_summary(results)
         
     return {
         "processed_count": len(results),
         "results": results,
+        "executive_summary": executive_summary,
         "summary": {
             "Positive": sum(1 for r in results if r["sentiment"] == "Positive"),
             "Negative": sum(1 for r in results if r["sentiment"] == "Negative"),

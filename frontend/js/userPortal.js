@@ -318,6 +318,14 @@ if (fileInput) {
             document.getElementById('bulkNeg').textContent = data.summary.Negative;
             document.getElementById('bulkNeu').textContent = data.summary.Neutral;
 
+            // Show AI Executive Summary
+            const summaryContainer = document.getElementById('bulkAiSummaryContainer');
+            const summaryText = document.getElementById('bulkAiSummaryText');
+            if (summaryContainer && summaryText && data.executive_summary) {
+                summaryContainer.classList.remove('hidden');
+                summaryText.textContent = data.executive_summary;
+            }
+
             fetchRecentAnalyses();
             fetchPersonalStats();
             showToast(`Bulk analysis complete — ${data.processed_count} texts processed`, 'success');
@@ -718,6 +726,7 @@ function renderDeepAnalysis(data) {
     renderToxicityShield(data.toxicity);
     renderSentenceBreakdown(data.sentence_breakdown);
     renderKeywordMap(data.keyword_map);
+    renderManipulationDetection(data.manipulation);
 }
 
 // ── Sarcasm Meter
@@ -799,7 +808,51 @@ function renderToxicityShield(toxicity) {
                 `<span class="bg-rose-900/20 border border-rose-900/40 text-rose-400 px-2 py-0.5 rounded text-xs font-mono">"${w}"</span>`
             ).join('');
         } else {
-            words.innerHTML = '<span class="text-xs text-emerald-600">✓ No flagged terms detected</span>';
+            words.innerHTML = '<span class="text-xs text-gray-700 italic">None detected</span>';
+        }
+    }
+}
+
+// ── Manipulation & Dark Patterns
+function renderManipulationDetection(manipulation) {
+    if (!manipulation) return;
+    const score = Math.round(manipulation.score * 100);
+
+    const badge = document.getElementById('manipulationBadge');
+    const scoreEl = document.getElementById('manipulationScore');
+    const bar = document.getElementById('manipulationBar');
+    const label = document.getElementById('manipulationLabel');
+    const clues = document.getElementById('manipulationClues');
+
+    if (badge) {
+        badge.classList.remove('hidden');
+        badge.textContent = manipulation.label;
+        badge.className = 'ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold border';
+        if (manipulation.score >= 0.6) {
+            badge.classList.add('bg-rose-900/30', 'text-rose-400', 'border-rose-700/40');
+        } else if (manipulation.score >= 0.3) {
+            badge.classList.add('bg-amber-900/30', 'text-amber-400', 'border-amber-700/40');
+        } else if (manipulation.score >= 0.1) {
+            badge.classList.add('bg-blue-900/30', 'text-blue-400', 'border-blue-700/40');
+        } else {
+            badge.classList.add('bg-emerald-900/30', 'text-emerald-400', 'border-emerald-700/40');
+        }
+    }
+
+    if (scoreEl) scoreEl.textContent = (100 - score) + '%';
+    if (bar) {
+        bar.style.width = '0%';
+        setTimeout(() => bar.style.width = (100 - score) + '%', 50);
+    }
+    if (label) label.textContent = manipulation.label;
+
+    if (clues) {
+        if (manipulation.clues && manipulation.clues.length > 0) {
+            clues.innerHTML = manipulation.clues.map(c =>
+                `<span class="bg-[#1a1a1a] border border-[#333] px-2 py-1 rounded text-[10px] text-gray-300">${c}</span>`
+            ).join('');
+        } else {
+            clues.innerHTML = '<span class="text-xs text-emerald-600">— No manipulation patterns detected</span>';
         }
     }
 }

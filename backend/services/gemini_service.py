@@ -97,3 +97,45 @@ Each rewrite should be roughly the same length as the original. Return raw JSON 
             "neutral": text,
             "formal": text
         }
+
+
+def get_bulk_summary(results: list) -> str:
+    """
+    Generate a concise executive summary for a list of analysis results.
+    """
+    if not model:
+        return "AI executive summary unavailable."
+
+    # Prepare a condensed summary of stats for Gemini
+    pos = sum(1 for r in results if r["sentiment"] == "Positive")
+    neg = sum(1 for r in results if r["sentiment"] == "Negative")
+    neu = sum(1 for r in results if r["sentiment"] == "Neutral")
+    total = len(results)
+
+    # Sample some key texts (first few and last few to stay within prompt limits)
+    sample_size = min(10, total)
+    samples = []
+    for r in results[:5] + (results[-5:] if total > 5 else []):
+        samples.append(f"- [{r['sentiment']}] {r['text'][:100]}...")
+
+    prompt = f"""You are a high-level data analyst. Analyze the following bulk sentiment data and provide a concise 'Executive Summary' (2-3 sentences max). 
+Identify the overall mood and highlight the key drivers (if any trends are visible in the samples).
+
+Stats:
+- Total Analyzed: {total}
+- Positive: {pos}
+- Negative: {neg}
+- Neutral: {neu}
+
+Sample Texts:
+{chr(10).join(samples)}
+
+Write only the summary paragraph. Do not use bullet points or headings."""
+
+    try:
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        print(f"Gemini bulk summary error: {e}")
+        return f"Batch analysis of {total} items completed. {pos} positive, {neg} negative, and {neu} neutral results found."
+
