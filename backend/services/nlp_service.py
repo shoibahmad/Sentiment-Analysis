@@ -264,7 +264,9 @@ def perform_advanced_analysis(text: str):
 
     # Emotions (NRCLex)
     nrc = NRCLex(text)
-    emotions = {k: v for k, v in nrc.raw_emotion_scores.items() if k not in ['positive', 'negative']}
+    # Handle both old API (raw_emotion_scores) and new API (affect_frequencies)
+    raw_scores = getattr(nrc, 'raw_emotion_scores', None) or getattr(nrc, 'affect_frequencies', {})
+    emotions = {k: v for k, v in raw_scores.items() if k not in ['positive', 'negative']}
     top_emotions = dict(sorted(emotions.items(), key=lambda item: item[1], reverse=True)[:3])
     result["emotions"] = top_emotions
 
