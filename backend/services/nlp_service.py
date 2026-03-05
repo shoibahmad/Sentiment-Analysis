@@ -261,6 +261,16 @@ def perform_advanced_analysis(text: str):
         result["sentiment"] = "Neutral"
         result["confidence"] = 1.0 - abs(polarity)
 
+    # Override for severe negative/self-harm context (models often miss this and score neutral)
+    self_harm_keywords = {
+        'suicide', 'suicidal', 'kill myself', 'end my life', 'want to die',
+        'better off dead', 'take my own life', 'no reason to live', 'jump off',
+        'slit my wrists', 'overdose'
+    }
+    if any(keyword in text.lower() for keyword in self_harm_keywords):
+        result["sentiment"] = "Negative"
+        result["confidence"] = 0.99
+
     result["emoji"] = get_emoji(result["sentiment"])
 
     # Emotions (NRCLex)

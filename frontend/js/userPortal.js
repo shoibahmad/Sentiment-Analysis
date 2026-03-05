@@ -62,39 +62,19 @@ const textInput = document.getElementById("textInput");
 const errorMsg = document.getElementById("errorMsg");
 const typingIndicator = document.getElementById("typingIndicator");
 
-let typingTimer;
-const doneTypingInterval = 1000; // 1 second pause triggers analysis
-
-if (textInput) {
-    textInput.addEventListener('input', () => {
-        clearTimeout(typingTimer);
-        document.getElementById('resultContent').classList.add('opacity-50');
-        if (typingIndicator) typingIndicator.classList.remove('hidden');
-
-        if (textInput.value.trim().length > 0) {
-            typingTimer = setTimeout(triggerAnalysis, doneTypingInterval);
-        } else {
-            if (typingIndicator) typingIndicator.classList.add('hidden');
-            document.getElementById('resultContent').classList.remove('opacity-50');
-        }
-    });
-}
-
+// Auto-analysis removed based on user request. Analysis only happens on button click.
 if (analyzeBtn) {
     analyzeBtn.addEventListener("click", () => {
-        clearTimeout(typingTimer);
-        triggerAnalysis(true);
+        triggerAnalysis();
     });
 }
 
-async function triggerAnalysis(isManual = false) {
+async function triggerAnalysis() {
     if (typingIndicator) typingIndicator.classList.add('hidden');
 
     if (!textInput.value.trim()) {
-        if (isManual) {
-            errorMsg.querySelector('span').textContent = "Please enter some text to analyze.";
-            errorMsg.classList.remove("hidden");
-        }
+        errorMsg.querySelector('span').textContent = "Please enter some text to analyze.";
+        errorMsg.classList.remove("hidden");
         return;
     }
 
